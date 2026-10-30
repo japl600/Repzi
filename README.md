@@ -1,50 +1,50 @@
 # Repzi
 
-App Android para registrar entrenamientos de gimnasio (rutinas predefinidas y personalizadas). Es un proyecto de práctica para repasar arquitectura y herramientas de Android moderno.
+[![CI](https://github.com/japl600/Repzi/actions/workflows/ci.yml/badge.svg)](https://github.com/japl600/Repzi/actions/workflows/ci.yml)
+
+An Android app for logging gym workouts (predefined and custom routines). It is a practice project to review architecture and modern Android tooling.
 
 ## Stack
 
-Kotlin, Coroutines y Flow, Jetpack Compose (Material 3), Hilt, Room, Navigation Compose, Gradle con convention plugins y version catalog.
+Kotlin, Coroutines and Flow, Jetpack Compose (Material 3), Hilt, Room, Navigation Compose, Gradle with convention plugins and a version catalog.
 
-## Arquitectura
+## Architecture
 
-Clean Architecture con MVVM, modularizada por capa y por feature.
+Clean Architecture with MVVM, modularized by layer and by feature.
 
 ```
-app                      raíz de composición (Application, Activity, NavHost)
+app                      composition root (Application, Activity, NavHost)
 core/
-  domain                 Kotlin puro: modelos, repositorios (interfaces), casos de uso
-  data                   implementaciones de repositorio (offline-first sobre Room)
-  database               Room: entidades, DAOs, base de datos
-  ui                     tema Material 3 y componentes comunes
-  testing                fakes y reglas de test compartidas
+  domain                 pure Kotlin: models, repository interfaces, use cases
+  data                   repository implementations (offline-first on top of Room)
+  database               Room: entities, DAOs, database
+  ui                     Material 3 theme and shared components
+  testing                shared fakes and test rules
 feature/
-  exercises              catálogo de ejercicios con filtro por grupo muscular (implementada)
-  routines, session, history   módulos creados, sin implementar
+  exercises              exercise catalog filtered by muscle group (implemented)
+  routines, session, history   modules created, not implemented yet
 build-logic/convention   convention plugins (repzi.android.*, repzi.jvm.library)
 ```
 
-Dependencias permitidas: `feature` → `core:domain` + `core:ui`; `core:data` → `core:domain` + `core:database`; `app` conoce todo para armar el grafo de Hilt. `core:domain` no depende de Android, para poder pasarlo a Kotlin Multiplatform más adelante.
+Allowed dependencies: `feature` → `core:domain` + `core:ui`; `core:data` → `core:domain` + `core:database`; `app` knows everything in order to build the Hilt graph. `core:domain` has no Android dependencies, so it can be moved to Kotlin Multiplatform later.
 
-## Cómo abrirlo
+## Getting started
 
-1. Abrir la carpeta del proyecto en Android Studio y esperar el sync de Gradle (JDK 17 o superior, el JBR de Android Studio sirve).
-2. Ejecutar la configuración `app` en un emulador o dispositivo.
-3. Tests: `./gradlew test` (unitarios) y `./gradlew :core:database:connectedAndroidTest` (Room, necesita emulador).
-
-Nota: el proyecto se generó sin compilarlo. Si el primer sync falla por algún cambio de API de las versiones del catálogo, se corrige en `gradle/libs.versions.toml` o en `build-logic`.
+1. Open the project folder in Android Studio and wait for the Gradle sync (JDK 17 or newer; CI uses Temurin 21).
+2. Run the `app` configuration on an emulator or device.
+3. Tests: `./gradlew test` (unit tests) and `./gradlew :core:database:connectedAndroidTest` (Room, needs an emulator).
 
 ## Roadmap
 
-- **Nivel 1 (MVP):** biblioteca de ejercicios, rutinas personalizadas, registro de sesión (series, repeticiones, peso), historial.
-- **Nivel 2:** rutinas predefinidas, temporizador de descanso, gráficas de progreso, búsqueda.
-- **Nivel 3:** catálogo remoto con sincronización, WorkManager, notificaciones, widget (Glance).
-- **Después:** Baseline Profiles y Macrobenchmark, screenshot tests, migración de `core:domain` y `core:data` a KMP.
+- **Level 1 (MVP):** exercise library, custom routines, workout session logging (sets, reps, weight), history.
+- **Level 2:** predefined routines, rest timer, progress charts, search.
+- **Level 3:** remote catalog with sync, WorkManager, notifications, widget (Glance).
+- **Later:** Baseline Profiles and Macrobenchmark, screenshot tests, migrating `core:domain` and `core:data` to KMP.
 
-## Mediciones
+## Measurements
 
-| Medición | Antes | Después | Cambio aplicado |
+| Measurement | Before | After | Change applied |
 |---|---|---|---|
-| Build limpio | | | |
-| Build incremental | | | |
-| Arranque en frío | | | |
+| Clean build | | | |
+| Incremental build | | | |
+| Cold start | | | |
