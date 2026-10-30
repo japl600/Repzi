@@ -1,0 +1,15 @@
+*.iml
+.gradle/
+.idea/
+.kotlin/
+build/
+captures/
+local.properties
+*.apk
+*.aab
+.externalNativeBuild/
+.cxx/
+.DS_Store
+
+# Generado por Android Studio (fija el JDK del daemon en 25); el proyecto usa JDK 21 en CI
+gradle/gradle-daemon-jvm.properties

@@ -1,0 +1,6 @@
+* text=auto
+
+# El wrapper de Gradle se ejecuta en Linux (CI), así que gradlew debe quedar siempre con LF.
+gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
