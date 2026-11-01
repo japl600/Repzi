@@ -7,10 +7,15 @@ import androidx.room.Transaction
 import com.japl.repzi.core.database.model.LoggedSetEntity
 import com.japl.repzi.core.database.model.WorkoutSessionEntity
 import com.japl.repzi.core.database.model.WorkoutSessionWithSets
+import kotlinx.coroutines.flow.Flow
 
 // Abstract class instead of interface: @Transaction needs a method with a body.
 @Dao
 abstract class WorkoutSessionDao {
+
+    @Transaction
+    @Query("SELECT * FROM workout_sessions")
+    abstract fun observeAll(): Flow<List<WorkoutSessionWithSets>>
 
     @Transaction
     @Query("SELECT * FROM workout_sessions WHERE id = :id")
@@ -26,6 +31,10 @@ abstract class WorkoutSessionDao {
         insertSets(sets.map { it.copy(sessionId = id) })
         return id
     }
+
+    // The sets go away with the session thanks to ON DELETE CASCADE.
+    @Query("DELETE FROM workout_sessions WHERE id = :id")
+    abstract suspend fun delete(id: Long)
 
     @Insert
     protected abstract suspend fun insert(session: WorkoutSessionEntity): Long

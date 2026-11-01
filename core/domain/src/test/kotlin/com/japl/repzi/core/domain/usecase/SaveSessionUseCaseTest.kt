@@ -10,6 +10,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 
 class SaveSessionUseCaseTest {
@@ -20,10 +22,12 @@ class SaveSessionUseCaseTest {
     private class RecordingRepository : SessionRepository {
         var saved: WorkoutSession? = null
 
+        override fun observeSessions(): Flow<List<WorkoutSession>> = emptyFlow()
         override suspend fun saveSession(session: WorkoutSession): Long {
             saved = session
             return 9
         }
+        override suspend fun deleteSession(id: Long) = Unit
     }
 
     private val repository = RecordingRepository()

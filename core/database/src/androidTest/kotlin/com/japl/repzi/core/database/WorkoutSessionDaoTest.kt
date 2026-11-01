@@ -14,6 +14,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
 
@@ -83,5 +84,31 @@ class WorkoutSessionDaoTest {
     @Test
     fun unknownSessionIsNull() = runTest {
         assertNull(sessionDao.getById(42))
+    }
+
+    @Test
+    fun observeAllEmitsEverySavedSession() = runTest {
+        val bench = insertExercise("Banca")
+        sessionDao.save(WorkoutSessionEntity(routineName = "A", startedAt = 0, finishedAt = 1), listOf(set(0, 0, bench, 8, 60.0)))
+        sessionDao.save(WorkoutSessionEntity(routineName = "B", startedAt = 2, finishedAt = 3), listOf(set(0, 0, bench, 5, 70.0)))
+
+        val names = sessionDao.observeAll().first().map { it.session.routineName }
+
+        assertEquals(setOf("A", "B"), names.toSet())
+    }
+
+    @Test
+    fun deletingASessionRemovesItsSetsButKeepsTheExercises() = runTest {
+        val bench = insertExercise("Banca")
+        val id = sessionDao.save(
+            WorkoutSessionEntity(routineName = "A", startedAt = 0, finishedAt = 1),
+            listOf(set(0, 0, bench, 8, 60.0), set(0, 1, bench, 8, 60.0)),
+        )
+
+        sessionDao.delete(id)
+
+        assertNull(sessionDao.getById(id))
+        assertEquals(0, database.query("SELECT * FROM logged_sets", null).use { it.count })
+        assertEquals(1, exerciseDao.observeAll().first().size)
     }
 }
