@@ -22,7 +22,8 @@ core/
   testing                shared fakes and test rules
 feature/
   exercises              exercise catalog filtered by muscle group (implemented)
-  routines, session, history   modules created, not implemented yet
+  routines               create, edit, reorder and delete custom routines (implemented)
+  session, history       modules created, not implemented yet
 build-logic/convention   convention plugins (repzi.android.*, repzi.jvm.library)
 ```
 
@@ -32,7 +33,7 @@ Allowed dependencies: `feature` → `core:domain` + `core:ui`; `core:data` → `
 
 1. Open the project folder in Android Studio and wait for the Gradle sync (JDK 17 or newer; CI uses Temurin 21).
 2. Run the `app` configuration on an emulator or device.
-3. Tests: `./gradlew test` (unit tests) and `./gradlew :core:database:connectedAndroidTest` (Room, needs an emulator).
+3. Tests: `./gradlew test` (unit tests) and `./gradlew :core:database:connectedAndroidTest` (Room DAOs and the schema migration, needs an emulator).
 
 ## Roadmap
 

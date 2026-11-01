@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="routines_title">Rutinas</string>
+    <string name="routines_create">Crear rutina</string>
+    <string name="routines_empty">Aún no tienes rutinas. Crea la primera con el botón +.</string>
+    <string name="routines_delete">Eliminar</string>
+    <string name="routines_cancel">Cancelar</string>
+    <string name="routines_delete_title">Eliminar rutina</string>
+    <string name="routines_delete_message">¿Eliminar la rutina \"%1$s\"? Esta acción no se puede deshacer.</string>
+    <plurals name="routines_exercise_count">
+        <item quantity="one">%d ejercicio</item>
+        <item quantity="other">%d ejercicios</item>
+    </plurals>
+
+    <string name="editor_title_new">Nueva rutina</string>
+    <string name="editor_title_edit">Editar rutina</string>
+    <string name="editor_back">Volver</string>
+    <string name="editor_save">Guardar</string>
+    <string name="editor_name_label">Nombre</string>
+    <string name="editor_error_blank_name">Escribe un nombre para la rutina.</string>
+    <string name="editor_error_no_exercises">Agrega al menos un ejercicio.</string>
+    <string name="editor_add_exercises">Agregar ejercicios</string>
+    <string name="editor_move_up">Subir</string>
+    <string name="editor_move_down">Bajar</string>
+    <string name="editor_remove">Quitar de la rutina</string>
+    <string name="editor_picker_done">Listo</string>
+</resources>
