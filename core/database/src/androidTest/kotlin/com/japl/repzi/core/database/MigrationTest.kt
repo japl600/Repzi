@@ -42,6 +42,25 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate2To3KeepsRoutinesAndCreatesSessionTables() {
+        helper.createDatabase(DB_NAME, 2).apply {
+            execSQL("INSERT INTO exercises (name, muscle_group, is_custom) VALUES ('Sentadilla', 'LEGS', 0)")
+            execSQL("INSERT INTO routines (name) VALUES ('Legs')")
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 3, true, MIGRATION_2_3)
+
+        db.query("SELECT name FROM routines").use {
+            assertEquals(1, it.count)
+            it.moveToFirst()
+            assertEquals("Legs", it.getString(0))
+        }
+        db.execSQL("INSERT INTO workout_sessions (routine_name, started_at, finished_at) VALUES ('Legs', 1, 2)")
+        db.execSQL("INSERT INTO logged_sets VALUES (1, 0, 0, 1, 5, 100.0)")
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }
