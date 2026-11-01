@@ -16,9 +16,9 @@ fun NavController.navigateToRoutineEditor(routineId: Long = Routine.NEW_ID) {
     navigate("routines/editor?$ROUTINE_ID_ARG=$routineId")
 }
 
-fun NavGraphBuilder.routinesScreens(navController: NavController) {
+fun NavGraphBuilder.routinesScreens(navController: NavController, onStartRoutine: (Long) -> Unit) {
     composable(ROUTINES_ROUTE) {
-        RoutinesRoute(onEditRoutine = navController::navigateToRoutineEditor)
+        RoutinesRoute(onEditRoutine = navController::navigateToRoutineEditor, onStartRoutine = onStartRoutine)
     }
     composable(
         route = ROUTINE_EDITOR_ROUTE,

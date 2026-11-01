@@ -10,7 +10,7 @@ Kotlin, Coroutines and Flow, Jetpack Compose (Material 3), Hilt, Room, Navigatio
 
 ## Architecture
 
-Clean Architecture with MVVM, modularized by layer and by feature.
+Clean Architecture modularized by layer and by feature. Screens use MVVM with a single UI state; the workout session screen uses MVI (intents, a pure reducer and one-shot effects).
 
 ```
 app                      composition root (Application, Activity, NavHost)
@@ -23,7 +23,8 @@ core/
 feature/
   exercises              exercise catalog filtered by muscle group (implemented)
   routines               create, edit, reorder and delete custom routines (implemented)
-  session, history       modules created, not implemented yet
+  session                log sets, reps and weight for a routine, built with MVI (implemented)
+  history                module created, not implemented yet
 build-logic/convention   convention plugins (repzi.android.*, repzi.jvm.library)
 ```
 

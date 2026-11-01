@@ -2,6 +2,7 @@ package com.japl.repzi.feature.routines
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,6 +36,7 @@ import com.japl.repzi.core.ui.component.EmptyState
 @Composable
 fun RoutinesRoute(
     onEditRoutine: (Long) -> Unit,
+    onStartRoutine: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RoutinesViewModel = hiltViewModel(),
 ) {
@@ -42,6 +45,7 @@ fun RoutinesRoute(
         uiState = uiState,
         onCreateRoutine = { onEditRoutine(Routine.NEW_ID) },
         onOpenRoutine = { onEditRoutine(it.id) },
+        onStartRoutine = { onStartRoutine(it.id) },
         onDeleteRequested = viewModel::onDeleteRequested,
         onDeleteConfirmed = viewModel::onDeleteConfirmed,
         onDeleteDismissed = viewModel::onDeleteDismissed,
@@ -55,6 +59,7 @@ internal fun RoutinesScreen(
     uiState: RoutinesUiState,
     onCreateRoutine: () -> Unit,
     onOpenRoutine: (Routine) -> Unit,
+    onStartRoutine: (Routine) -> Unit,
     onDeleteRequested: (Routine) -> Unit,
     onDeleteConfirmed: () -> Unit,
     onDeleteDismissed: () -> Unit,
@@ -83,11 +88,19 @@ internal fun RoutinesScreen(
                                 Text(pluralStringResource(R.plurals.routines_exercise_count, count, count))
                             },
                             trailingContent = {
-                                IconButton(onClick = { onDeleteRequested(routine) }) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = stringResource(R.string.routines_delete),
-                                    )
+                                Row {
+                                    IconButton(onClick = { onStartRoutine(routine) }) {
+                                        Icon(
+                                            Icons.Default.PlayArrow,
+                                            contentDescription = stringResource(R.string.routines_start),
+                                        )
+                                    }
+                                    IconButton(onClick = { onDeleteRequested(routine) }) {
+                                        Icon(
+                                            Icons.Default.Delete,
+                                            contentDescription = stringResource(R.string.routines_delete),
+                                        )
+                                    }
                                 }
                             },
                         )

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="session_close">Cerrar</string>
+    <string name="session_finish">Terminar</string>
+    <string name="session_set_label">Serie %1$d</string>
+    <string name="session_weight_label">Peso (kg)</string>
+    <string name="session_reps_label">Reps</string>
+    <string name="session_add_set">Añadir serie</string>
+    <string name="session_remove_set">Quitar serie</string>
+    <string name="session_error_nothing_logged">Registra al menos una serie con repeticiones.</string>
+    <string name="session_discard_title">¿Descartar entrenamiento?</string>
+    <string name="session_discard_message">Perderás las series que has escrito.</string>
+    <string name="session_discard_confirm">Descartar</string>
+    <string name="session_discard_keep">Seguir entrenando</string>
+</resources>

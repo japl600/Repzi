@@ -3,6 +3,7 @@
     <string name="routines_title">Rutinas</string>
     <string name="routines_create">Crear rutina</string>
     <string name="routines_empty">Aún no tienes rutinas. Crea la primera con el botón +.</string>
+    <string name="routines_start">Iniciar entrenamiento</string>
     <string name="routines_delete">Eliminar</string>
     <string name="routines_cancel">Cancelar</string>
     <string name="routines_delete_title">Eliminar rutina</string>

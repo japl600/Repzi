@@ -19,6 +19,8 @@ import androidx.navigation.compose.rememberNavController
 import com.japl.repzi.feature.exercises.EXERCISES_ROUTE
 import com.japl.repzi.feature.exercises.exercisesScreen
 import com.japl.repzi.feature.routines.routinesScreens
+import com.japl.repzi.feature.session.navigateToSession
+import com.japl.repzi.feature.session.sessionScreen
 
 @Composable
 fun RepziNavHost() {
@@ -59,8 +61,9 @@ fun RepziNavHost() {
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
             exercisesScreen()
-            routinesScreens(navController)
-            // sessionScreen() and historyScreen() are added here as each feature is implemented.
+            routinesScreens(navController, onStartRoutine = navController::navigateToSession)
+            sessionScreen(navController)
+            // historyScreen() is added here once that feature is implemented.
         }
     }
 }
