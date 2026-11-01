@@ -18,6 +18,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.japl.repzi.feature.exercises.EXERCISES_ROUTE
 import com.japl.repzi.feature.exercises.exercisesScreen
+import com.japl.repzi.feature.history.historyScreen
 import com.japl.repzi.feature.routines.routinesScreens
 import com.japl.repzi.feature.session.navigateToSession
 import com.japl.repzi.feature.session.sessionScreen
@@ -63,7 +64,7 @@ fun RepziNavHost() {
             exercisesScreen()
             routinesScreens(navController, onStartRoutine = navController::navigateToSession)
             sessionScreen(navController)
-            // historyScreen() is added here once that feature is implemented.
+            historyScreen()
         }
     }
 }

@@ -3,10 +3,12 @@ package com.japl.repzi.navigation
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.japl.repzi.R
 import com.japl.repzi.feature.exercises.EXERCISES_ROUTE
+import com.japl.repzi.feature.history.HISTORY_ROUTE
 import com.japl.repzi.feature.routines.ROUTINES_ROUTE
 
 /** Destinations shown in the bottom navigation bar. */
@@ -17,4 +19,5 @@ enum class TopLevelDestination(
 ) {
     Exercises(EXERCISES_ROUTE, R.string.nav_exercises, Icons.AutoMirrored.Filled.List),
     Routines(ROUTINES_ROUTE, R.string.nav_routines, Icons.Default.DateRange),
+    History(HISTORY_ROUTE, R.string.nav_history, Icons.Default.CheckCircle),
 }
