@@ -38,8 +38,11 @@ class SessionViewModelTest {
 
     private val clock = FakeClock(Instant.fromEpochMilliseconds(1_000))
 
-    private fun createViewModel(routineId: Long = 5) = SessionViewModel(
-        savedStateHandle = SavedStateHandle(mapOf(ROUTINE_ID_ARG to routineId)),
+    private fun createViewModel(
+        routineId: Long = 5,
+        savedStateHandle: SavedStateHandle = SavedStateHandle(mapOf(ROUTINE_ID_ARG to routineId)),
+    ) = SessionViewModel(
+        savedStateHandle = savedStateHandle,
         getRoutine = GetRoutineUseCase(routines),
         saveSession = SaveSessionUseCase(sessions),
         clock = clock,
@@ -134,6 +137,39 @@ class SessionViewModelTest {
             assertEquals(SessionEffect.Close, awaitItem())
         }
         assertTrue(sessions.saved.isEmpty())
+    }
+
+    @Test
+    fun aRecreatedViewModelRestoresTheTypedSetsAndTheStartTime() = runTest {
+        // The same handle stands for the state the system restores after process death.
+        val handle = SavedStateHandle(mapOf(ROUTINE_ID_ARG to 5L))
+        val first = createViewModel(savedStateHandle = handle)
+        first.onIntent(SessionIntent.WeightChanged(0, 0, "100"))
+        first.onIntent(SessionIntent.RepsChanged(0, 0, "5"))
+        first.onIntent(SessionIntent.SetAdded(0))
+        clock.current = Instant.fromEpochMilliseconds(500_000)
+
+        val restored = createViewModel(savedStateHandle = handle)
+
+        assertEquals(first.state.value.exercises, restored.state.value.exercises)
+        assertEquals(listOf(SetInput("100", "5"), SetInput("100", "5")), restored.state.value.exercises[0].sets)
+        restored.onIntent(SessionIntent.FinishClicked)
+        assertEquals(Instant.fromEpochMilliseconds(1_000), sessions.saved.single().startedAt)
+    }
+
+    @Test
+    fun theDraftIsMatchedByExerciseWhenTheRoutineChanged() = runTest {
+        val handle = SavedStateHandle(mapOf(ROUTINE_ID_ARG to 5L))
+        createViewModel(savedStateHandle = handle).onIntent(SessionIntent.RepsChanged(1, 0, "8"))
+        val row = Exercise(3, "Remo", MuscleGroup.BACK, isCustom = false)
+        // Squat was removed from the routine and rowing added.
+        routines.saveRoutine(Routine(5, "Full body", listOf(bench, row)))
+
+        val exercises = createViewModel(savedStateHandle = handle).state.value.exercises
+
+        assertEquals(listOf(bench, row), exercises.map { it.exercise })
+        assertEquals(listOf(SetInput(reps = "8")), exercises[0].sets)
+        assertEquals(listOf(SetInput()), exercises[1].sets)
     }
 
     @Test

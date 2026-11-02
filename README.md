@@ -23,7 +23,7 @@ core/
 feature/
   exercises              exercise catalog filtered by muscle group (implemented)
   routines               create, edit, reorder and delete custom routines (implemented)
-  session                log sets, reps and weight for a routine, built with MVI (implemented)
+  session                log sets, reps and weight for a routine, built with MVI; the workout in progress survives process death (implemented)
   history                finished workouts, most recent first, with duration and volume (implemented)
 build-logic/convention   convention plugins (repzi.android.*, repzi.jvm.library)
 ```

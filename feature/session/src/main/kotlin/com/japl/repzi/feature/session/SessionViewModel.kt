@@ -9,6 +9,7 @@ import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,14 +21,19 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SessionViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val getRoutine: GetRoutineUseCase,
     private val saveSession: SaveSessionUseCase,
     private val clock: Clock,
 ) : ViewModel() {
 
     private val routineId: Long = checkNotNull(savedStateHandle[ROUTINE_ID_ARG])
-    private val startedAt = clock.now()
+
+    // Stored in the handle so a workout restored after process death keeps its real start time.
+    private val startedAt = Instant.fromEpochMilliseconds(
+        savedStateHandle.get<Long>(STARTED_AT_KEY)
+            ?:clock.now().toEpochMilliseconds().also { savedStateHandle[STARTED_AT_KEY] = it },
+    )
 
     private val _state = MutableStateFlow(SessionState())
 
@@ -48,9 +54,17 @@ class SessionViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         routineName = routine.name,
-                        exercises = routine.exercises.map { exercise -> ExerciseLog(exercise, listOf(SetInput())) },
+                        exercises = routine.exercises.toLogs(
+                            savedStateHandle.get<ArrayList<DraftExercise>>(DRAFT_KEY),
+                        ),
                     )
                 }
+            }
+        }
+        // Mirrors the typed sets into the handle after every change; the system writes it out when the app stops.
+        viewModelScope.launch {
+            _state.collect { state ->
+                if (!state.isLoading) savedStateHandle[DRAFT_KEY] = state.exercises.toDraft()
             }
         }
     }
