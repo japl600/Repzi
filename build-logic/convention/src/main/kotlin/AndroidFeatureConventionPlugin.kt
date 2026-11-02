@@ -26,6 +26,13 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 add("testImplementation", libs.library("junit"))
                 add("testImplementation", libs.library("kotlinx-coroutines-test"))
                 add("testImplementation", libs.library("turbine"))
+
+                // Tests de pantallas Compose en dispositivo (el resto de dependencias las pone el plugin de Compose).
+                add("androidTestImplementation", libs.library("androidx-test-ext-junit"))
+                add("androidTestImplementation", libs.library("androidx-test-runner"))
+                // Compose pulls in an older Espresso that crashes on recent Android versions (InputManager.getInstance).
+                add("androidTestImplementation", libs.library("androidx-test-espresso-core"))
+                add("androidTestImplementation", libs.library("kotlin-test-junit"))
             }
         }
     }

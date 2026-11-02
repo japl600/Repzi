@@ -34,7 +34,7 @@ Allowed dependencies: `feature` → `core:domain` + `core:ui`; `core:data` → `
 
 1. Open the project folder in Android Studio and wait for the Gradle sync (JDK 17 or newer; CI uses Temurin 21).
 2. Run the `app` configuration on an emulator or device.
-3. Tests: `./gradlew test` (unit tests) and `./gradlew :core:database:connectedAndroidTest` (Room DAOs and the schema migration, needs an emulator).
+3. Tests: `./gradlew test` (unit tests) and `./gradlew connectedDebugAndroidTest` (Compose screen tests and Room DAOs/migration, needs an emulator or device).
 
 ## Roadmap
 
