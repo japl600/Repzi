@@ -61,6 +61,26 @@ class MigrationTest {
         db.execSQL("INSERT INTO logged_sets VALUES (1, 0, 0, 1, 5, 100.0)")
     }
 
+    @Test
+    fun migrate3To4KeepsSessionsAndCreatesDraftTables() {
+        helper.createDatabase(DB_NAME, 3).apply {
+            execSQL("INSERT INTO exercises (name, muscle_group, is_custom) VALUES ('Sentadilla', 'LEGS', 0)")
+            execSQL("INSERT INTO routines (name) VALUES ('Legs')")
+            execSQL("INSERT INTO workout_sessions (routine_name, started_at, finished_at) VALUES ('Legs', 1, 2)")
+            execSQL("INSERT INTO logged_sets VALUES (1, 0, 0, 1, 5, 100.0)")
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 4, true, MIGRATION_3_4)
+
+        db.query("SELECT COUNT(*) FROM logged_sets").use {
+            it.moveToFirst()
+            assertEquals(1, it.getInt(0))
+        }
+        db.execSQL("INSERT INTO workout_drafts VALUES (1, 1000)")
+        db.execSQL("INSERT INTO draft_sets VALUES (1, 0, 0, 1, '100', '5')")
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }

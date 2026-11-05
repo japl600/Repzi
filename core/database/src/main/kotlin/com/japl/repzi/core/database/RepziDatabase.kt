@@ -4,11 +4,14 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.japl.repzi.core.database.dao.ExerciseDao
 import com.japl.repzi.core.database.dao.RoutineDao
+import com.japl.repzi.core.database.dao.WorkoutDraftDao
 import com.japl.repzi.core.database.dao.WorkoutSessionDao
+import com.japl.repzi.core.database.model.DraftSetEntity
 import com.japl.repzi.core.database.model.ExerciseEntity
 import com.japl.repzi.core.database.model.LoggedSetEntity
 import com.japl.repzi.core.database.model.RoutineEntity
 import com.japl.repzi.core.database.model.RoutineExerciseEntity
+import com.japl.repzi.core.database.model.WorkoutDraftEntity
 import com.japl.repzi.core.database.model.WorkoutSessionEntity
 
 @Database(
@@ -18,12 +21,15 @@ import com.japl.repzi.core.database.model.WorkoutSessionEntity
         RoutineExerciseEntity::class,
         WorkoutSessionEntity::class,
         LoggedSetEntity::class,
+        WorkoutDraftEntity::class,
+        DraftSetEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class RepziDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun routineDao(): RoutineDao
     abstract fun workoutSessionDao(): WorkoutSessionDao
+    abstract fun workoutDraftDao(): WorkoutDraftDao
 }

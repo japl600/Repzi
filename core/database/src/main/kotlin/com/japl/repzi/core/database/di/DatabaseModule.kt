@@ -7,6 +7,7 @@ import com.japl.repzi.core.database.ExerciseSeedCallback
 import com.japl.repzi.core.database.RepziDatabase
 import com.japl.repzi.core.database.dao.ExerciseDao
 import com.japl.repzi.core.database.dao.RoutineDao
+import com.japl.repzi.core.database.dao.WorkoutDraftDao
 import com.japl.repzi.core.database.dao.WorkoutSessionDao
 import dagger.Module
 import dagger.Provides
@@ -35,4 +36,7 @@ internal object DatabaseModule {
 
     @Provides
     fun provideWorkoutSessionDao(database: RepziDatabase): WorkoutSessionDao = database.workoutSessionDao()
+
+    @Provides
+    fun provideWorkoutDraftDao(database: RepziDatabase): WorkoutDraftDao = database.workoutDraftDao()
 }

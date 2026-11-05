@@ -45,4 +45,26 @@ internal val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
-internal val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+/** Adds workout_drafts and draft_sets, so a workout in progress survives the app being closed. */
+internal val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `workout_drafts` " +
+                "(`routine_id` INTEGER NOT NULL, `started_at` INTEGER NOT NULL, PRIMARY KEY(`routine_id`), " +
+                "FOREIGN KEY(`routine_id`) REFERENCES `routines`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `draft_sets` " +
+                "(`routine_id` INTEGER NOT NULL, `exercise_position` INTEGER NOT NULL, `set_index` INTEGER NOT NULL, " +
+                "`exercise_id` INTEGER NOT NULL, `weight` TEXT NOT NULL, `reps` TEXT NOT NULL, " +
+                "PRIMARY KEY(`routine_id`, `exercise_position`, `set_index`), " +
+                "FOREIGN KEY(`routine_id`) REFERENCES `workout_drafts`(`routine_id`) ON UPDATE NO ACTION ON DELETE CASCADE , " +
+                "FOREIGN KEY(`exercise_id`) REFERENCES `exercises`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_draft_sets_exercise_id` ON `draft_sets` (`exercise_id`)",
+        )
+    }
+}
+
+internal val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
