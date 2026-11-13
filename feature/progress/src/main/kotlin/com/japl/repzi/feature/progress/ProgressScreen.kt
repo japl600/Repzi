@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -44,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.ui.component.EmptyState
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlin.time.Instant
 
 private const val RECENT_SESSIONS = 3
@@ -60,6 +62,7 @@ fun ProgressRoute(
         onBack = onBack,
         onExerciseSelected = viewModel::onExerciseSelected,
         onRangeSelected = viewModel::onRangeSelected,
+        onMetricSelected = viewModel::onMetricSelected,
         modifier = modifier,
     )
 }
@@ -71,6 +74,7 @@ internal fun ProgressScreen(
     onBack: () -> Unit,
     onExerciseSelected: (Long) -> Unit,
     onRangeSelected: (ProgressRange) -> Unit,
+    onMetricSelected: (ProgressMetric) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -91,7 +95,7 @@ internal fun ProgressScreen(
             when {
                 uiState.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 selected == null -> EmptyState(stringResource(R.string.progress_empty))
-                else -> ProgressContent(selected, uiState, onExerciseSelected, onRangeSelected)
+                else -> ProgressContent(selected, uiState, onExerciseSelected, onRangeSelected, onMetricSelected)
             }
         }
     }
@@ -103,14 +107,15 @@ private fun ProgressContent(
     uiState: ProgressUiState,
     onExerciseSelected: (Long) -> Unit,
     onRangeSelected: (ProgressRange) -> Unit,
+    onMetricSelected: (ProgressMetric) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         ExercisePicker(selected, uiState.exercises, onExerciseSelected)
-        ChartCard(selected, uiState, onRangeSelected)
-        if (uiState.points.isNotEmpty()) {
+        ChartCard(selected, uiState, onRangeSelected, onMetricSelected)
+        if (uiState.series.isNotEmpty()) {
             Stats(uiState)
             RecentSessions(uiState)
         }
@@ -160,10 +165,12 @@ private fun ChartCard(
     selected: Exercise,
     uiState: ProgressUiState,
     onRangeSelected: (ProgressRange) -> Unit,
+    onMetricSelected: (ProgressMetric) -> Unit,
 ) {
     val context = LocalContext.current
-    val points = uiState.points
-    val latest = points.lastOrNull()
+    val metric = uiState.metric
+    val series = uiState.series
+    val latest = series.lastOrNull()
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Column(modifier = Modifier.padding(horizontal = 4.dp)) {
@@ -173,25 +180,25 @@ private fun ChartCard(
                     verticalAlignment = Alignment.Bottom,
                 ) {
                     Text(
-                        text = latest?.let { stringResource(R.string.progress_kg, formatKg(it.maxWeightKg)) } ?: "—",
+                        text = latest?.let { metricText(metric, it.value) } ?: "—",
                         style = MaterialTheme.typography.headlineMedium,
                     )
-                    uiState.changeKg?.let { change ->
+                    uiState.change?.let { change ->
                         Text(
-                            text = stringResource(R.string.progress_kg, signed(change)),
+                            text = metricText(metric, change, signed = true),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
                 Text(
-                    stringResource(R.string.progress_metric),
+                    stringResource(metric.descriptionRes()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
-            if (points.isEmpty()) {
+            if (series.isEmpty()) {
                 Text(
                     stringResource(R.string.progress_no_data_in_range),
                     style = MaterialTheme.typography.bodyMedium,
@@ -199,17 +206,34 @@ private fun ChartCard(
                 )
             } else {
                 ProgressChart(
-                    points = points,
+                    points = series,
+                    wholeNumbers = !metric.isWeight,
                     formatDate = { formatDate(context, it) },
                     description = stringResource(
                         R.string.progress_chart_description,
                         selected.name,
-                        formatKg(points.last().maxWeightKg),
-                        formatKg(points.maxOf { it.maxWeightKg }),
+                        stringResource(metric.descriptionRes()),
+                        metricText(metric, series.last().value),
+                        metricText(metric, series.maxOf { it.value }),
                     ),
                 )
             }
 
+            // An exercise with a single kind of data (bodyweight: only reps) has nothing to choose from.
+            if (uiState.availableMetrics.size > 1) {
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    uiState.availableMetrics.forEach { option ->
+                        FilterChip(
+                            selected = metric == option,
+                            onClick = { onMetricSelected(option) },
+                            label = { Text(stringResource(option.chipLabelRes())) },
+                        )
+                    }
+                }
+            }
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -231,7 +255,7 @@ private fun Stats(uiState: ProgressUiState) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         StatCard(
             label = stringResource(R.string.progress_record),
-            value = uiState.record?.let { stringResource(R.string.progress_kg, formatKg(it)) } ?: "—",
+            value = uiState.record?.let { metricText(uiState.metric, it) } ?: "—",
             modifier = Modifier.weight(1f),
         )
         StatCard(
@@ -241,7 +265,7 @@ private fun Stats(uiState: ProgressUiState) {
         )
         StatCard(
             label = stringResource(R.string.progress_sessions),
-            value = uiState.points.size.toString(),
+            value = uiState.series.size.toString(),
             modifier = Modifier.weight(1f),
         )
     }
@@ -260,6 +284,9 @@ private fun StatCard(label: String, value: String, modifier: Modifier = Modifier
 @Composable
 private fun RecentSessions(uiState: ProgressUiState) {
     val context = LocalContext.current
+    val metric = uiState.metric
+    // Sessions without a figure for this metric (a bodyweight day when looking at weight) are not listed.
+    val recent = uiState.points.filter { metric.valueIn(it) != null }.takeLast(RECENT_SESSIONS).reversed()
     Column {
         Text(
             stringResource(R.string.progress_recent),
@@ -267,18 +294,50 @@ private fun RecentSessions(uiState: ProgressUiState) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 4.dp),
         )
-        uiState.points.takeLast(RECENT_SESSIONS).reversed().forEach { point ->
+        recent.forEach { point ->
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(formatDate(context, point.date), style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    stringResource(R.string.progress_set, formatKg(point.maxWeightKg), point.reps),
+                    // For the max weight the set it came from is more useful than the bare number.
+                    text = if (metric == ProgressMetric.MAX_WEIGHT) {
+                        stringResource(R.string.progress_set, formatNumber(point.maxWeightKg), point.reps)
+                    } else {
+                        metricText(metric, metric.valueIn(point) ?: 0.0)
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
     }
+}
+
+/** [value] with its unit: kg for the weight metrics, reps otherwise. With [signed] it gets an explicit + or -. */
+@Composable
+private fun metricText(metric: ProgressMetric, value: Double, signed: Boolean = false): String {
+    val number = if (signed) signed(value) else formatNumber(value)
+    return if (metric.isWeight) {
+        stringResource(R.string.progress_kg, number)
+    } else {
+        pluralStringResource(R.plurals.progress_reps, abs(value).roundToInt(), number)
+    }
+}
+
+@StringRes
+private fun ProgressMetric.chipLabelRes(): Int = when (this) {
+    ProgressMetric.MAX_WEIGHT -> R.string.progress_metric_chip_max_weight
+    ProgressMetric.ESTIMATED_ONE_REP_MAX -> R.string.progress_metric_chip_one_rep_max
+    ProgressMetric.VOLUME -> R.string.progress_metric_chip_volume
+    ProgressMetric.REPS -> R.string.progress_metric_chip_reps
+}
+
+@StringRes
+private fun ProgressMetric.descriptionRes(): Int = when (this) {
+    ProgressMetric.MAX_WEIGHT -> R.string.progress_metric_max_weight
+    ProgressMetric.ESTIMATED_ONE_REP_MAX -> R.string.progress_metric_one_rep_max
+    ProgressMetric.VOLUME -> R.string.progress_metric_volume
+    ProgressMetric.REPS -> R.string.progress_metric_reps
 }
 
 @StringRes
@@ -298,4 +357,4 @@ private fun formatDate(context: android.content.Context, date: Instant): String 
     )
 
 /** A change with an explicit sign: +5 or -2.5 (zero is shown as +0). */
-private fun signed(value: Double): String = (if (value < 0) "-" else "+") + formatKg(abs(value))
+private fun signed(value: Double): String = (if (value < 0) "-" else "+") + formatNumber(abs(value))

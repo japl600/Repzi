@@ -27,7 +27,7 @@ feature/
   routines               create, edit, reorder and delete custom routines (implemented)
   session                log sets, reps and weight for a routine, built with MVI; the workout in progress is saved as a draft in Room and resumes after the app is closed (implemented)
   history                finished workouts, most recent first, with duration and volume (implemented)
-  progress               max weight per session for an exercise as a Canvas line chart with date ranges, opened from Exercises or History (implemented)
+  progress               per-exercise Canvas line chart of max weight, estimated 1RM, volume or reps with date ranges, opened from Exercises or History (implemented)
 build-logic/convention   convention plugins (repzi.android.*, repzi.jvm.library)
 ```
 

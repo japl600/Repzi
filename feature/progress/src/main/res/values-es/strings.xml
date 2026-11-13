@@ -3,19 +3,18 @@
     <string name="progress_title">Progreso</string>
     <string name="progress_back">Volver</string>
     <string name="progress_exercise">Ejercicio</string>
-    <string name="progress_metric">Peso máximo por sesión</string>
+
+    <!-- Short names, used on the metric chips. -->
     <string name="progress_metric_chip_max_weight">Peso máx.</string>
     <string name="progress_metric_chip_one_rep_max">1RM est.</string>
     <string name="progress_metric_chip_volume">Volumen</string>
     <string name="progress_metric_chip_reps">Reps</string>
+    <!-- What the chart shows, under the big number. -->
     <string name="progress_metric_max_weight">Peso máximo por sesión</string>
     <string name="progress_metric_one_rep_max">1RM estimado por sesión</string>
     <string name="progress_metric_volume">Volumen por sesión</string>
     <string name="progress_metric_reps">Máximo de repeticiones en una serie</string>
-    <plurals name="progress_reps">
-        <item quantity="one">%1$s rep</item>
-        <item quantity="other">%1$s reps</item>
-    </plurals>
+
     <string name="progress_range_month">1 mes</string>
     <string name="progress_range_quarter">3 meses</string>
     <string name="progress_range_half_year">6 meses</string>
@@ -25,9 +24,13 @@
     <string name="progress_sessions">Sesiones</string>
     <string name="progress_recent">Últimas sesiones</string>
     <string name="progress_kg">%1$s kg</string>
+    <plurals name="progress_reps">
+        <item quantity="one">%1$s rep</item>
+        <item quantity="other">%1$s reps</item>
+    </plurals>
     <string name="progress_percent">%1$s %%</string>
     <string name="progress_set">%1$s kg × %2$d</string>
-    <string name="progress_empty">Aún no hay progreso que mostrar. Registra un entrenamiento con peso y aparecerá aquí.</string>
+    <string name="progress_empty">Aún no hay progreso que mostrar. Registra un entrenamiento y aparecerá aquí.</string>
     <string name="progress_no_data_in_range">No hay sesiones en este rango de fechas.</string>
-    <string name="progress_chart_description">Peso máximo de %1$s: último %2$s kg, récord %3$s kg</string>
+    <string name="progress_chart_description">%1$s, %2$s: último %3$s, récord %4$s</string>
 </resources>

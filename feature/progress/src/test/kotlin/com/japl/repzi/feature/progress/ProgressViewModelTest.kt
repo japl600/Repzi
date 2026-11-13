@@ -5,7 +5,6 @@ import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.LoggedExercise
 import com.japl.repzi.core.domain.model.LoggedSet
 import com.japl.repzi.core.domain.model.MuscleGroup
-import com.japl.repzi.core.domain.model.ProgressPoint
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.domain.usecase.ObserveExerciseProgressUseCase
 import com.japl.repzi.core.domain.usecase.ObserveTrackedExercisesUseCase
@@ -72,7 +71,7 @@ class ProgressViewModelTest {
         val state = createViewModel(squat.id).uiState.first { !it.isLoading }
 
         assertEquals(squat, state.selected)
-        assertEquals(listOf(ProgressPoint(day(195), 100.0, 5)), state.points)
+        assertEquals(listOf(100.0), state.points.map { it.maxWeightKg })
     }
 
     @Test
@@ -142,15 +141,134 @@ class ProgressViewModelTest {
         val state = createViewModel().uiState.first { !it.isLoading }
 
         assertEquals(80.0, state.record)
-        assertEquals(30.0, state.changeKg)
+        assertEquals(30.0, state.change)
         assertEquals(60, state.changePercent)
     }
+
+    // Pull-ups: day 198 bodyweight only, day 199 with 10 kg added.
+    private val pullUp = Exercise(3, "Dominadas", MuscleGroup.BACK, isCustom = false)
+    private val mixed = FakeSessionRepository(
+        listOf(
+            WorkoutSession(
+                id = 1,
+                routineName = "Routine",
+                startedAt = day(198),
+                finishedAt = day(198) + 1.hours,
+                exercises = listOf(LoggedExercise(bench, listOf(LoggedSet(5, 60.0), LoggedSet(5, 60.0))), LoggedExercise(pullUp, listOf(LoggedSet(8, 0.0)))),
+            ),
+            WorkoutSession(
+                id = 2,
+                routineName = "Routine",
+                startedAt = day(199),
+                finishedAt = day(199) + 1.hours,
+                exercises = listOf(LoggedExercise(bench, listOf(LoggedSet(5, 65.0))), LoggedExercise(pullUp, listOf(LoggedSet(6, 10.0)))),
+            ),
+        ),
+    )
+
+    private fun createMixedViewModel(exerciseId: Long) = ProgressViewModel(
+        savedStateHandle = SavedStateHandle(mapOf(EXERCISE_ID_ARG to exerciseId)),
+        observeTrackedExercises = ObserveTrackedExercisesUseCase(mixed),
+        observeProgress = ObserveExerciseProgressUseCase(mixed),
+        clock = clock,
+    )
+
+    @Test
+    fun theMaxWeightIsPlottedByDefault() = runTest {
+        val state = createMixedViewModel(bench.id).uiState.first { !it.isLoading }
+
+        assertEquals(ProgressMetric.MAX_WEIGHT, state.metric)
+        assertEquals(ProgressMetric.entries, state.availableMetrics)
+    }
+
+    @Test
+    fun theMetricChangesWhatIsPlotted() = runTest {
+        val viewModel = createMixedViewModel(bench.id)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        viewModel.onMetricSelected(ProgressMetric.VOLUME)
+        // 600 kg on day 198 (two sets of 5 x 60) and 325 kg on day 199.
+        assertEquals(listOf(600.0, 325.0), viewModel.uiState.value.series.map { it.value })
+        assertEquals(-275.0, viewModel.uiState.value.change)
+
+        viewModel.onMetricSelected(ProgressMetric.REPS)
+        assertEquals(listOf(5.0, 5.0), viewModel.uiState.value.series.map { it.value })
+    }
+
+    @Test
+    fun theOneRepMaxIsEstimatedPerSession() = runTest {
+        val viewModel = createMixedViewModel(bench.id)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        viewModel.onMetricSelected(ProgressMetric.ESTIMATED_ONE_REP_MAX)
+
+        // 60 x 5 gives 70 and 65 x 5 gives 75.8333...
+        assertEquals(70.0, viewModel.uiState.value.series.first().value, absoluteTolerance = 1e-9)
+        assertEquals(65 * (1 + 5 / 30.0), viewModel.uiState.value.record!!, absoluteTolerance = 1e-9)
+    }
+
+    @Test
+    fun anExerciseDoneWithBodyweightOnlyIsPlottedByReps() = runTest {
+        val repository = FakeSessionRepository(
+            listOf(
+                WorkoutSession(
+                    id = 1,
+                    routineName = "Routine",
+                    startedAt = day(198),
+                    finishedAt = day(198) + 1.hours,
+                    exercises = listOf(
+                        LoggedExercise(bench, listOf(LoggedSet(5, 60.0))),
+                        LoggedExercise(pullUp, listOf(LoggedSet(8, 0.0), LoggedSet(6, 0.0))),
+                    ),
+                ),
+            ),
+        )
+        val viewModel = ProgressViewModel(
+            savedStateHandle = SavedStateHandle(mapOf(EXERCISE_ID_ARG to pullUp.id)),
+            observeTrackedExercises = ObserveTrackedExercisesUseCase(repository),
+            observeProgress = ObserveExerciseProgressUseCase(repository),
+            clock = clock,
+        )
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        // The weight metrics have no data for pull-ups, so only reps is on offer and it is the one plotted.
+        assertEquals(listOf(ProgressMetric.REPS), viewModel.uiState.value.availableMetrics)
+        assertEquals(ProgressMetric.REPS, viewModel.uiState.value.metric)
+        assertEquals(listOf(8.0), viewModel.uiState.value.series.map { it.value })
+
+        // Going back to a weighted exercise restores the default metric.
+        viewModel.onExerciseSelected(bench.id)
+        assertEquals(ProgressMetric.MAX_WEIGHT, viewModel.uiState.value.metric)
+    }
+
+    @Test
+    fun sessionsWithoutWeightAreLeftOutOfTheWeightMetrics() = runTest {
+        val viewModel = createMixedViewModel(pullUp.id)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        // Day 198 was bodyweight only; day 199 added 10 kg. Both count as sessions for reps.
+        assertEquals(listOf(10.0), viewModel.uiState.value.series.map { it.value })
+        viewModel.onMetricSelected(ProgressMetric.REPS)
+        assertEquals(listOf(8.0, 6.0), viewModel.uiState.value.series.map { it.value })
+    }
+
+    @Test
+    fun theChosenMetricSurvivesSwitchingExercises() = runTest {
+        val viewModel = createMixedViewModel(bench.id)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+        viewModel.onMetricSelected(ProgressMetric.VOLUME)
+
+        viewModel.onExerciseSelected(pullUp.id)
+
+        assertEquals(ProgressMetric.VOLUME, viewModel.uiState.value.metric)
+    }
+
 
     @Test
     fun oneSessionHasNoChange() = runTest {
         val state = createViewModel(squat.id).uiState.first { !it.isLoading }
 
-        assertNull(state.changeKg)
+        assertNull(state.change)
         assertNull(state.changePercent)
     }
 }

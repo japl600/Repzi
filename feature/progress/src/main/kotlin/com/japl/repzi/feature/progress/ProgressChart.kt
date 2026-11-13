@@ -17,16 +17,17 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import com.japl.repzi.core.domain.model.ProgressPoint
+
 import kotlin.time.Instant
 
 /**
- * Line chart of the heaviest weight per session, drawn with Canvas (no chart library). Points sit at their real dates,
+ * Line chart of one metric per session (weight, volume, reps...), drawn with Canvas (no chart library). Points sit at their real dates,
  * so a long pause between two sessions shows as a gap. The record gets a ring and the latest point is filled.
  */
 @Composable
 internal fun ProgressChart(
-    points: List<ProgressPoint>,
+    points: List<ChartPoint>,
+    wholeNumbers: Boolean,
     formatDate: (Instant) -> String,
     description: String,
     modifier: Modifier = Modifier,
@@ -34,7 +35,7 @@ internal fun ProgressChart(
     val colors = MaterialTheme.colorScheme
     val labelStyle = MaterialTheme.typography.labelSmall.copy(color = colors.onSurfaceVariant)
     val measurer = rememberTextMeasurer()
-    val scale = remember(points) { chartScale(points.minOf { it.maxWeightKg }, points.maxOf { it.maxWeightKg }) }
+    val scale = remember(points, wholeNumbers) { chartScale(points.minOf { it.value }, points.maxOf { it.value }, wholeNumbers) }
 
     Canvas(
         modifier = modifier
@@ -42,7 +43,7 @@ internal fun ProgressChart(
             .height(200.dp)
             .clearAndSetSemantics { contentDescription = description },
     ) {
-        val tickLabels = scale.ticks.map { measurer.measure(formatKg(it), labelStyle) }
+        val tickLabels = scale.ticks.map { measurer.measure(formatNumber(it), labelStyle) }
         val dateLabels = listOf(points.first(), points.last())
             .map { formatDate(it.date) }
             .distinct()
@@ -55,18 +56,18 @@ internal fun ProgressChart(
         val plotTop = 10.dp.toPx()
         val plotBottom = size.height - dateLabels.maxOf { it.size.height } - 10.dp.toPx()
 
-        fun yOf(kg: Double) =
-            plotBottom - ((kg - scale.min) / (scale.max - scale.min)).toFloat() * (plotBottom - plotTop)
+        fun yOf(value: Double) =
+            plotBottom - ((value - scale.min) / (scale.max - scale.min)).toFloat() * (plotBottom - plotTop)
 
         val firstTime = points.first().date.toEpochMilliseconds()
         val span = points.last().date.toEpochMilliseconds() - firstTime
         val xStart = plotLeft + endRadius
         val xEnd = plotRight - endRadius
-        fun xOf(point: ProgressPoint) =
+        fun xOf(point: ChartPoint) =
             if (span == 0L) (xStart + xEnd) / 2
             else xStart + (point.date.toEpochMilliseconds() - firstTime).toFloat() / span * (xEnd - xStart)
 
-        // Grid and weight axis.
+        // Grid and value axis.
         scale.ticks.forEachIndexed { index, tick ->
             val y = yOf(tick)
             drawLine(colors.outlineVariant, Offset(plotLeft, y), Offset(plotRight, y), strokeWidth = 1.dp.toPx())
@@ -88,7 +89,7 @@ internal fun ProgressChart(
             }
         }
 
-        val coordinates = points.map { Offset(xOf(it), yOf(it.maxWeightKg)) }
+        val coordinates = points.map { Offset(xOf(it), yOf(it.value)) }
         if (coordinates.size > 1) {
             val line = Path().apply {
                 coordinates.forEachIndexed { i, p -> if (i == 0) moveTo(p.x, p.y) else lineTo(p.x, p.y) }
@@ -108,9 +109,9 @@ internal fun ProgressChart(
             coordinates.dropLast(1).forEach { drawCircle(colors.tertiary, dotRadius, it) }
         }
 
-        // The record is the last point with the highest weight.
-        val record = points.maxOf { it.maxWeightKg }
-        val recordIndex = points.indexOfLast { it.maxWeightKg == record }
+        // The record is the last point with the highest value.
+        val record = points.maxOf { it.value }
+        val recordIndex = points.indexOfLast { it.value == record }
         drawCircle(
             colors.tertiary,
             radius = 8.dp.toPx(),
@@ -123,6 +124,6 @@ internal fun ProgressChart(
     }
 }
 
-/** Shows whole weights without the decimal part: 60 instead of 60.0 (same format as the history screen). */
-internal fun formatKg(kg: Double): String =
+/** Shows whole numbers without the decimal part: 60 instead of 60.0. */
+internal fun formatNumber(kg: Double): String =
     if (kg % 1.0 == 0.0) kg.toLong().toString() else kg.toString()

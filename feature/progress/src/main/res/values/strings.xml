@@ -3,19 +3,18 @@
     <string name="progress_title">Progress</string>
     <string name="progress_back">Back</string>
     <string name="progress_exercise">Exercise</string>
-    <string name="progress_metric">Max weight per session</string>
+
+    <!-- Short names, used on the metric chips. -->
     <string name="progress_metric_chip_max_weight">Max weight</string>
     <string name="progress_metric_chip_one_rep_max">Est. 1RM</string>
     <string name="progress_metric_chip_volume">Volume</string>
     <string name="progress_metric_chip_reps">Reps</string>
+    <!-- What the chart shows, under the big number. -->
     <string name="progress_metric_max_weight">Max weight per session</string>
     <string name="progress_metric_one_rep_max">Estimated 1RM per session</string>
     <string name="progress_metric_volume">Volume per session</string>
     <string name="progress_metric_reps">Most reps in a set</string>
-    <plurals name="progress_reps">
-        <item quantity="one">%1$s rep</item>
-        <item quantity="other">%1$s reps</item>
-    </plurals>
+
     <string name="progress_range_month">1 month</string>
     <string name="progress_range_quarter">3 months</string>
     <string name="progress_range_half_year">6 months</string>
@@ -25,9 +24,13 @@
     <string name="progress_sessions">Sessions</string>
     <string name="progress_recent">Latest sessions</string>
     <string name="progress_kg">%1$s kg</string>
+    <plurals name="progress_reps">
+        <item quantity="one">%1$s rep</item>
+        <item quantity="other">%1$s reps</item>
+    </plurals>
     <string name="progress_percent">%1$s %%</string>
     <string name="progress_set">%1$s kg × %2$d</string>
-    <string name="progress_empty">No progress to show yet. Log a workout with weight and it will appear here.</string>
+    <string name="progress_empty">No progress to show yet. Log a workout and it will appear here.</string>
     <string name="progress_no_data_in_range">There are no sessions in this date range.</string>
-    <string name="progress_chart_description">Max weight for %1$s: latest %2$s kg, record %3$s kg</string>
+    <string name="progress_chart_description">%1$s, %2$s: latest %3$s, record %4$s</string>
 </resources>

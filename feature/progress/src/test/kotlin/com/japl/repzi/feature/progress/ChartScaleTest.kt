@@ -40,6 +40,15 @@ class ChartScaleTest {
     }
 
     @Test
+    fun repsNeverGetAFractionalStep() {
+        // A range of 2 would give a step of 0.5, which would show half reps on the axis.
+        assertEquals(ChartScale(min = 8.0, max = 10.0, step = 1.0), chartScale(8.0, 10.0, wholeNumbers = true))
+        // And 2.5-sized steps are skipped too: 0..10 uses 5 instead.
+        assertEquals(2.5, chartScale(0.0, 10.0).step)
+        assertEquals(5.0, chartScale(0.0, 10.0, wholeNumbers = true).step)
+    }
+
+    @Test
     fun smallRangesGetAWholeKilogramStep() {
         val scale = chartScale(20.0, 22.5)
 

@@ -18,15 +18,24 @@ data class ProgressUiState(
     val exercises: List<Exercise> = emptyList(),
     val selected: Exercise? = null,
     val range: ProgressRange = ProgressRange.ALL,
-    /** Points inside [range], oldest first. */
+    /** The metric being plotted; always one of [availableMetrics] when there are any. */
+    val metric: ProgressMetric = ProgressMetric.MAX_WEIGHT,
+    /** Metrics the selected exercise has data for: a bodyweight exercise only has reps. */
+    val availableMetrics: List<ProgressMetric> = emptyList(),
+    /** Sessions inside [range], oldest first. */
     val points: List<ProgressPoint> = emptyList(),
 ) {
-    val record: Double? get() = points.maxOfOrNull { it.maxWeightKg }
+    /** The values of [metric] inside [range]; sessions where the metric does not apply are left out. */
+    internal val series: List<ChartPoint> = points.mapNotNull { point ->
+        metric.valueIn(point)?.let { ChartPoint(point.date, it) }
+    }
 
-    /** Weight gained from the first to the last point of the range, or null with fewer than two sessions. */
-    val changeKg: Double?
-        get() = if (points.size >= 2) points.last().maxWeightKg - points.first().maxWeightKg else null
+    val record: Double? get() = series.maxOfOrNull { it.value }
+
+    /** Gain from the first to the last point of the range, or null with fewer than two sessions. */
+    val change: Double?
+        get() = if (series.size >= 2) series.last().value - series.first().value else null
 
     val changePercent: Int?
-        get() = changeKg?.let { (it / points.first().maxWeightKg * 100).roundToInt() }
+        get() = change?.let { (it / series.first().value * 100).roundToInt() }
 }

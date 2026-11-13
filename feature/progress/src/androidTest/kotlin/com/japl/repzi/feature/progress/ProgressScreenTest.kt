@@ -2,9 +2,11 @@ package com.japl.repzi.feature.progress
 
 import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -28,15 +30,25 @@ class ProgressScreenTest {
 
     private fun day(n: Int) = Instant.fromEpochMilliseconds(1_700_000_000_000 + n * 86_400_000L)
 
+    private fun point(dayNumber: Int, kg: Double, reps: Int) = ProgressPoint(
+        date = day(dayNumber),
+        maxWeightKg = kg,
+        reps = reps,
+        volumeKg = kg * reps,
+        estimatedOneRepMaxKg = kg * (1 + reps / 30.0),
+        maxReps = reps,
+    )
+
     private val points = listOf(
-        ProgressPoint(day(0), 60.0, 5),
-        ProgressPoint(day(7), 62.5, 5),
-        ProgressPoint(day(14), 65.0, 4),
+        point(0, 60.0, 5),
+        point(7, 62.5, 5),
+        point(14, 65.0, 4),
     )
 
     private var backs = 0
     private val exercisesSelected = mutableListOf<Long>()
     private val rangesSelected = mutableListOf<ProgressRange>()
+    private val metricsSelected = mutableListOf<ProgressMetric>()
 
     private fun setScreen(uiState: ProgressUiState) {
         rule.setContent {
@@ -46,6 +58,7 @@ class ProgressScreenTest {
                     onBack = { backs++ },
                     onExerciseSelected = { exercisesSelected += it },
                     onRangeSelected = { rangesSelected += it },
+                    onMetricSelected = { metricsSelected += it },
                 )
             }
         }
@@ -55,6 +68,7 @@ class ProgressScreenTest {
         isLoading = false,
         exercises = listOf(bench, squat),
         selected = bench,
+        availableMetrics = ProgressMetric.entries,
         points = points,
     )
 
@@ -82,8 +96,51 @@ class ProgressScreenTest {
     fun describesTheChartForAccessibility() {
         setScreen(withData)
 
-        rule.onNodeWithContentDescription(string(R.string.progress_chart_description, "Press de banca", "65", "65"))
-            .assertIsDisplayed()
+        val description = string(
+            R.string.progress_chart_description,
+            "Press de banca",
+            string(R.string.progress_metric_max_weight),
+            string(R.string.progress_kg, "65"),
+            string(R.string.progress_kg, "65"),
+        )
+
+        rule.onNodeWithContentDescription(description).assertIsDisplayed()
+    }
+
+    @Test
+    fun theMetricChipsMarkTheCurrentOneAndReportAChange() {
+        setScreen(withData)
+
+        rule.onNodeWithText(string(R.string.progress_metric_chip_max_weight)).assertIsSelected()
+        rule.onNodeWithText(string(R.string.progress_metric_chip_volume)).performScrollTo().performClick()
+
+        assertEquals(listOf(ProgressMetric.VOLUME), metricsSelected)
+    }
+
+    @Test
+    fun anExerciseWithASingleMetricShowsNoMetricChips() {
+        setScreen(withData.copy(metric = ProgressMetric.REPS, availableMetrics = listOf(ProgressMetric.REPS)))
+
+        rule.onNodeWithText(string(R.string.progress_metric_reps)).assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.progress_metric_chip_volume)).assertDoesNotExist()
+    }
+
+    @Test
+    fun volumeIsShownInKilograms() {
+        setScreen(withData.copy(metric = ProgressMetric.VOLUME))
+
+        rule.onNodeWithText(string(R.string.progress_metric_volume)).assertIsDisplayed()
+        // 65 kg x 4 reps, the latest session.
+        rule.onAllNodesWithText(string(R.string.progress_kg, "260")).assertCountEquals(2)
+    }
+
+    @Test
+    fun repsAreShownWithTheirUnit() {
+        setScreen(withData.copy(metric = ProgressMetric.REPS))
+
+        // The latest session did 4 reps: it shows in the headline and in the list below.
+        val fourReps = rule.activity.resources.getQuantityString(R.plurals.progress_reps, 4, "4")
+        rule.onAllNodesWithText(fourReps).assertCountEquals(2)
     }
 
     @Test

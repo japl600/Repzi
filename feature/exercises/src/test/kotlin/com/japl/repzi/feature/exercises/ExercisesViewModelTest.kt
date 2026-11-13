@@ -64,7 +64,7 @@ class ExercisesViewModelTest {
     }
 
     @Test
-    fun marksTheExercisesThatHaveLoggedWeight() = runTest {
+    fun marksTheExercisesThatHaveBeenLogged() = runTest {
         val squat = repository.observeExercises().first().first { it.name == "Sentadilla" }
         val bench = repository.observeExercises().first().first { it.name == "Press de banca" }
         sessions.saveSession(
@@ -74,7 +74,7 @@ class ExercisesViewModelTest {
                 finishedAt = Instant.fromEpochMilliseconds(2_000),
                 exercises = listOf(
                     LoggedExercise(squat, listOf(LoggedSet(5, 100.0))),
-                    // Without weight there is no chart, so this one gets no button.
+                    // Bodyweight work is charted by reps, so it gets the button too.
                     LoggedExercise(bench, listOf(LoggedSet(10, 0.0))),
                 ),
             ),
@@ -82,6 +82,6 @@ class ExercisesViewModelTest {
 
         val state = createViewModel().uiState.first { !it.isLoading }
 
-        assertEquals(setOf(squat.id), state.exercisesWithProgress)
+        assertEquals(setOf(squat.id, bench.id), state.exercisesWithProgress)
     }
 }
