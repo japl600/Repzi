@@ -8,6 +8,7 @@ import com.japl.repzi.core.database.dao.ExerciseDao
 import com.japl.repzi.core.database.dao.RoutineDao
 import com.japl.repzi.core.database.dao.WorkoutDraftDao
 import com.japl.repzi.core.database.model.DraftSetEntity
+import com.japl.repzi.core.database.dao.RoutineItem
 import com.japl.repzi.core.database.model.ExerciseEntity
 import com.japl.repzi.core.database.model.RoutineEntity
 import com.japl.repzi.core.database.model.WorkoutDraftEntity
@@ -43,7 +44,7 @@ class WorkoutDraftDaoTest {
         exerciseDao.insert(ExerciseEntity(name = name, muscleGroup = "CHEST", isCustom = false))
 
     private suspend fun insertRoutine(name: String, exerciseIds: List<Long>): Long =
-        routineDao.save(RoutineEntity(name = name), exerciseIds)
+        routineDao.save(RoutineEntity(name = name), exerciseIds.map { RoutineItem(it) })
 
     private fun set(routineId: Long, exercisePosition: Int, setIndex: Int, exerciseId: Long, weight: String, reps: String) =
         DraftSetEntity(routineId, exercisePosition, setIndex, exerciseId, weight, reps)
@@ -73,6 +74,23 @@ class WorkoutDraftDaoTest {
                 .sortedWith(compareBy({ it.exercisePosition }, { it.setIndex }))
                 .map { Triple(it.exerciseId, it.weight, it.reps) },
         )
+    }
+
+    @Test
+    fun theTickOnASetSurvivesTheRoundTrip() = runTest {
+        val bench = insertExercise("Banca")
+        val routine = insertRoutine("Push", listOf(bench))
+
+        draftDao.save(
+            WorkoutDraftEntity(routine, startedAt = 1_000),
+            listOf(
+                set(routine, 0, 0, bench, weight = "60", reps = "8").copy(done = true),
+                set(routine, 0, 1, bench, weight = "60", reps = "7"),
+            ),
+        )
+
+        val saved = draftDao.getByRoutine(routine)!!
+        assertEquals(listOf(true, false), saved.sets.sortedBy { it.setIndex }.map { it.done })
     }
 
     @Test

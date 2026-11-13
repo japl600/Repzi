@@ -10,6 +10,9 @@ import com.japl.repzi.core.database.model.RoutineExerciseEntity
 import com.japl.repzi.core.database.model.RoutineWithExercises
 import kotlinx.coroutines.flow.Flow
 
+/** One exercise of a routine as it is saved: the position comes from the order of the list. */
+data class RoutineItem(val exerciseId: Long, val restSeconds: Int? = null)
+
 // Abstract class instead of interface: @Transaction needs a method with a body.
 @Dao
 abstract class RoutineDao {
@@ -24,7 +27,7 @@ abstract class RoutineDao {
 
     /** Inserts or updates the routine and replaces its exercises, all in one transaction. */
     @Transaction
-    open suspend fun save(routine: RoutineEntity, exerciseIds: List<Long>): Long {
+    open suspend fun save(routine: RoutineEntity, items: List<RoutineItem>): Long {
         val id = if (routine.id == 0L) {
             insert(routine)
         } else {
@@ -32,9 +35,19 @@ abstract class RoutineDao {
             routine.id
         }
         deleteItems(id)
-        insertItems(exerciseIds.mapIndexed { position, exerciseId -> RoutineExerciseEntity(id, position, exerciseId) })
+        insertItems(
+            items.mapIndexed { position, item ->
+                RoutineExerciseEntity(id, position, item.exerciseId, item.restSeconds)
+            },
+        )
         return id
     }
+
+    @Query(
+        "UPDATE routine_exercises SET rest_seconds = :restSeconds " +
+            "WHERE routine_id = :routineId AND position = :position",
+    )
+    abstract suspend fun updateRest(routineId: Long, position: Int, restSeconds: Int?)
 
     // The join rows go away with the routine thanks to ON DELETE CASCADE.
     @Query("DELETE FROM routines WHERE id = :id")

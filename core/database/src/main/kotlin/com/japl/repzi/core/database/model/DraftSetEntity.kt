@@ -35,4 +35,5 @@ data class DraftSetEntity(
     @ColumnInfo(name = "exercise_id") val exerciseId: Long,
     val weight: String,
     val reps: String,
+    @ColumnInfo(defaultValue = "0") val done: Boolean = false,
 )

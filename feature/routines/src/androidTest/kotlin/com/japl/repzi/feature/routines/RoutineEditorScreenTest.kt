@@ -14,6 +14,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
+import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.ui.theme.RepziTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -32,7 +33,7 @@ class RoutineEditorScreenTest {
         isLoading = false,
         isNew = false,
         name = "Full body",
-        exercises = listOf(squat, bench),
+        exercises = listOf(RoutineExercise(squat), RoutineExercise(bench)),
     )
 
     private val names = mutableListOf<String>()

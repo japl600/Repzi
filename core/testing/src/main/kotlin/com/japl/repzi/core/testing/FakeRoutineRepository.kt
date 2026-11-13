@@ -19,6 +19,20 @@ class FakeRoutineRepository(initial: List<Routine> = emptyList()) : RoutineRepos
         return id
     }
 
+    override suspend fun setRestSeconds(routineId: Long, position: Int, restSeconds: Int?) {
+        routines.value = routines.value.map { routine ->
+            if (routine.id != routineId) {
+                routine
+            } else {
+                routine.copy(
+                    exercises = routine.exercises.mapIndexed { index, item ->
+                        if (index == position) item.copy(restSeconds = restSeconds) else item
+                    },
+                )
+            }
+        }
+    }
+
     override suspend fun deleteRoutine(id: Long) {
         routines.value = routines.value.filterNot { it.id == id }
     }

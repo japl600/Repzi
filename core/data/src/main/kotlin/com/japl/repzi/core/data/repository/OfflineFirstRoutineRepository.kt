@@ -4,6 +4,7 @@ import com.japl.repzi.core.data.ExerciseNames
 import com.japl.repzi.core.data.mapper.toDomain
 import com.japl.repzi.core.data.mapper.toEntity
 import com.japl.repzi.core.database.dao.RoutineDao
+import com.japl.repzi.core.database.dao.RoutineItem
 import com.japl.repzi.core.domain.DispatcherProvider
 import com.japl.repzi.core.domain.model.Routine
 import com.japl.repzi.core.domain.repository.RoutineRepository
@@ -24,8 +25,13 @@ internal class OfflineFirstRoutineRepository @Inject constructor(
     override suspend fun getRoutine(id: Long): Routine? = dao.getById(id)?.toDomain(names)
 
     override suspend fun saveRoutine(routine: Routine): Long = withContext(dispatchers.io) {
-        dao.save(routine.toEntity(), routine.exercises.map { it.id })
+        dao.save(routine.toEntity(), routine.exercises.map { RoutineItem(it.exercise.id, it.restSeconds) })
     }
+
+    override suspend fun setRestSeconds(routineId: Long, position: Int, restSeconds: Int?) =
+        withContext(dispatchers.io) {
+            dao.updateRest(routineId, position, restSeconds)
+        }
 
     override suspend fun deleteRoutine(id: Long) = withContext(dispatchers.io) {
         dao.delete(id)

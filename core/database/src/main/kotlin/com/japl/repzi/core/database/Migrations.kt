@@ -84,4 +84,15 @@ internal val MIGRATION_4_5 = object : Migration(4, 5) {
     }
 }
 
-internal val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+/**
+ * Adds routine_exercises.rest_seconds, the rest timer of an exercise inside a routine, and draft_sets.done, the tick
+ * on a set. Existing routines keep working without a rest timer (null) and existing draft sets start unticked.
+ */
+internal val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `routine_exercises` ADD COLUMN `rest_seconds` INTEGER")
+        db.execSQL("ALTER TABLE `draft_sets` ADD COLUMN `done` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+internal val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)

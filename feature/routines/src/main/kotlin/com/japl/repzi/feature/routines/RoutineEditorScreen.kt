@@ -143,9 +143,9 @@ internal fun RoutineEditorScreen(
                 )
             }
 
-            itemsIndexed(uiState.exercises, key = { _, exercise -> exercise.id }) { index, exercise ->
+            itemsIndexed(uiState.exercises, key = { _, item -> item.exercise.id }) { index, item ->
                 ListItem(
-                    headlineContent = { Text(exercise.name) },
+                    headlineContent = { Text(item.exercise.name) },
                     trailingContent = {
                         Row {
                             IconButton(onClick = { onExerciseMovedUp(index) }, enabled = index > 0) {
@@ -196,7 +196,7 @@ internal fun RoutineEditorScreen(
     if (showPicker) {
         ExercisePickerSheet(
             exercises = availableExercises,
-            selected = uiState.exercises,
+            selected = uiState.exercises.map { it.exercise },
             onToggle = onExerciseToggled,
             onDismiss = { showPicker = false },
         )

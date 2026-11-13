@@ -118,6 +118,34 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate5To6KeepsRoutinesWithoutARestTimerAndDraftSetsUnticked() {
+        helper.createDatabase(DB_NAME, 5).apply {
+            execSQL("INSERT INTO exercises (name, muscle_group, is_custom) VALUES ('Squat', 'LEGS', 0)")
+            execSQL("INSERT INTO routines (name) VALUES ('Legs')")
+            execSQL("INSERT INTO routine_exercises VALUES (1, 0, 1)")
+            execSQL("INSERT INTO workout_drafts VALUES (1, 1000)")
+            execSQL("INSERT INTO draft_sets VALUES (1, 0, 0, 1, '100', '5')")
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 6, true, MIGRATION_5_6)
+
+        db.query("SELECT exercise_id, rest_seconds FROM routine_exercises").use {
+            assertEquals(1, it.count)
+            it.moveToFirst()
+            assertEquals(1, it.getInt(0))
+            // No rest timer until the user turns it on.
+            assertEquals(true, it.isNull(1))
+        }
+        db.query("SELECT weight, reps, done FROM draft_sets").use {
+            it.moveToFirst()
+            assertEquals("100", it.getString(0))
+            assertEquals("5", it.getString(1))
+            assertEquals(0, it.getInt(2))
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }

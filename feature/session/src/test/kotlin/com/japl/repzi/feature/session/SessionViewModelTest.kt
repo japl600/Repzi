@@ -9,6 +9,7 @@ import com.japl.repzi.core.domain.model.LoggedExercise
 import com.japl.repzi.core.domain.model.LoggedSet
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.Routine
+import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.domain.model.WorkoutDraft
 import com.japl.repzi.core.domain.repository.DraftRepository
 import com.japl.repzi.core.domain.usecase.DeleteWorkoutDraftUseCase
@@ -38,7 +39,7 @@ class SessionViewModelTest {
     private val squat = Exercise(1, "Sentadilla", MuscleGroup.LEGS, isCustom = false)
     private val bench = Exercise(2, "Press de banca", MuscleGroup.CHEST, isCustom = false)
 
-    private val routines = FakeRoutineRepository(listOf(Routine(5, "Full body", listOf(squat, bench))))
+    private val routines = FakeRoutineRepository(listOf(Routine(5, "Full body", listOf(RoutineExercise(squat), RoutineExercise(bench)))))
     private val sessions = FakeSessionRepository()
 
     private class FakeClock(var current: Instant) : Clock {
@@ -207,7 +208,7 @@ class SessionViewModelTest {
         createViewModel().onIntent(SessionIntent.RepsChanged(1, 0, "8"))
         val row = Exercise(3, "Remo", MuscleGroup.BACK, isCustom = false)
         // Squat was removed from the routine and rowing added.
-        routines.saveRoutine(Routine(5, "Full body", listOf(bench, row)))
+        routines.saveRoutine(Routine(5, "Full body", listOf(RoutineExercise(bench), RoutineExercise(row))))
 
         val exercises = createViewModel().state.value.exercises
 
@@ -218,7 +219,7 @@ class SessionViewModelTest {
 
     @Test
     fun aDraftOfAnotherRoutineIsNotResumed() = runTest {
-        routines.saveRoutine(Routine(6, "Legs", listOf(squat)))
+        routines.saveRoutine(Routine(6, "Legs", listOf(RoutineExercise(squat))))
         createViewModel(routineId = 6).onIntent(SessionIntent.RepsChanged(0, 0, "5"))
 
         val state = createViewModel(routineId = 5).state.value

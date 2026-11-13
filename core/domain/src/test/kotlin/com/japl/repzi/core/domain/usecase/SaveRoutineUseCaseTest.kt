@@ -3,6 +3,7 @@ package com.japl.repzi.core.domain.usecase
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.Routine
+import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.domain.repository.RoutineRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,7 +14,7 @@ import kotlinx.coroutines.test.runTest
 
 class SaveRoutineUseCaseTest {
 
-    private val squat = Exercise(1, "Sentadilla", MuscleGroup.LEGS, isCustom = false)
+    private val squat = RoutineExercise(Exercise(1, "Sentadilla", MuscleGroup.LEGS, isCustom = false))
 
     private class RecordingRepository : RoutineRepository {
         var saved: Routine? = null
@@ -24,6 +25,7 @@ class SaveRoutineUseCaseTest {
             saved = routine
             return 7
         }
+        override suspend fun setRestSeconds(routineId: Long, position: Int, restSeconds: Int?) = Unit
         override suspend fun deleteRoutine(id: Long) = Unit
     }
 

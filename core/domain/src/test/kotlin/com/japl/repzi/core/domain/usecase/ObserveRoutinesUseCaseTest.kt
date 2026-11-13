@@ -21,6 +21,7 @@ class ObserveRoutinesUseCaseTest {
         )
         override suspend fun getRoutine(id: Long): Routine? = null
         override suspend fun saveRoutine(routine: Routine): Long = routine.id
+        override suspend fun setRestSeconds(routineId: Long, position: Int, restSeconds: Int?) = Unit
         override suspend fun deleteRoutine(id: Long) = Unit
     }
 

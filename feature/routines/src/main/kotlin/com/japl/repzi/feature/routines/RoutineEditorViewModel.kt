@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.Routine
+import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.ObserveExercisesUseCase
 import com.japl.repzi.core.domain.usecase.SaveRoutineResult
@@ -66,7 +67,11 @@ class RoutineEditorViewModel @Inject constructor(
     /** Adds the exercise at the end of the routine, or removes it when it is already part of it. */
     fun onExerciseToggled(exercise: Exercise) {
         _uiState.update { state ->
-            val exercises = if (exercise in state.exercises) state.exercises - exercise else state.exercises + exercise
+            val exercises = if (state.exercises.any { it.exercise.id == exercise.id }) {
+                state.exercises.filterNot { it.exercise.id == exercise.id }
+            } else {
+                state.exercises + RoutineExercise(exercise)
+            }
             state.copy(exercises = exercises, error = null)
         }
     }
@@ -96,7 +101,7 @@ class RoutineEditorViewModel @Inject constructor(
         list
     }
 
-    private fun reorder(change: (MutableList<Exercise>) -> MutableList<Exercise>) {
+    private fun reorder(change: (MutableList<RoutineExercise>) -> MutableList<RoutineExercise>) {
         _uiState.update { it.copy(exercises = change(it.exercises.toMutableList())) }
     }
 

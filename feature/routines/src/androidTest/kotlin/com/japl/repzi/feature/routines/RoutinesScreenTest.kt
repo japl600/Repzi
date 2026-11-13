@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performClick
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.Routine
+import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.ui.theme.RepziTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -25,8 +26,8 @@ class RoutinesScreenTest {
     private val squat = Exercise(1, "Sentadilla", MuscleGroup.LEGS, isCustom = false)
     private val bench = Exercise(2, "Press de banca", MuscleGroup.CHEST, isCustom = false)
 
-    private val fullBody = Routine(1, "Full body", listOf(squat, bench))
-    private val legs = Routine(2, "Piernas", listOf(squat))
+    private val fullBody = Routine(1, "Full body", listOf(RoutineExercise(squat), RoutineExercise(bench)))
+    private val legs = Routine(2, "Piernas", listOf(RoutineExercise(squat)))
 
     private var created = 0
     private val opened = mutableListOf<Routine>()

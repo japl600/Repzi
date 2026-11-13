@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.Routine
+import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.ObserveExercisesUseCase
 import com.japl.repzi.core.domain.usecase.SaveRoutineUseCase
@@ -32,8 +33,10 @@ class RoutineEditorViewModelTest {
     private val bench = Exercise(2, "Press de banca", MuscleGroup.CHEST, isCustom = false)
     private val row = Exercise(3, "Remo con barra", MuscleGroup.BACK, isCustom = false)
 
-    private val routines = FakeRoutineRepository(listOf(Routine(5, "Full body", listOf(squat, bench, row))))
+    private val routines = FakeRoutineRepository(listOf(Routine(5, "Full body", items(squat, bench, row))))
     private val exercises = FakeExerciseRepository(listOf(squat, bench, row))
+
+    private fun items(vararg exercises: Exercise) = exercises.map { RoutineExercise(it) }
 
     private fun createViewModel(routineId: Long? = null) = RoutineEditorViewModel(
         savedStateHandle = SavedStateHandle(if (routineId == null) emptyMap() else mapOf(ROUTINE_ID_ARG to routineId)),
@@ -59,7 +62,7 @@ class RoutineEditorViewModelTest {
         assertFalse(state.isNew)
         assertFalse(state.isLoading)
         assertEquals("Full body", state.name)
-        assertEquals(listOf(squat, bench, row), state.exercises)
+        assertEquals(items(squat, bench, row), state.exercises)
     }
 
     @Test
@@ -68,10 +71,10 @@ class RoutineEditorViewModelTest {
 
         viewModel.onExerciseToggled(bench)
         viewModel.onExerciseToggled(squat)
-        assertEquals(listOf(bench, squat), viewModel.uiState.value.exercises)
+        assertEquals(items(bench, squat), viewModel.uiState.value.exercises)
 
         viewModel.onExerciseToggled(bench)
-        assertEquals(listOf(squat), viewModel.uiState.value.exercises)
+        assertEquals(items(squat), viewModel.uiState.value.exercises)
     }
 
     @Test
@@ -79,18 +82,18 @@ class RoutineEditorViewModelTest {
         val viewModel = createViewModel(routineId = 5)
 
         viewModel.onExerciseMovedDown(0)
-        assertEquals(listOf(bench, squat, row), viewModel.uiState.value.exercises)
+        assertEquals(items(bench, squat, row), viewModel.uiState.value.exercises)
 
         viewModel.onExerciseMovedUp(2)
-        assertEquals(listOf(bench, row, squat), viewModel.uiState.value.exercises)
+        assertEquals(items(bench, row, squat), viewModel.uiState.value.exercises)
 
         // Moving past either end is ignored.
         viewModel.onExerciseMovedUp(0)
         viewModel.onExerciseMovedDown(2)
-        assertEquals(listOf(bench, row, squat), viewModel.uiState.value.exercises)
+        assertEquals(items(bench, row, squat), viewModel.uiState.value.exercises)
 
         viewModel.onExerciseRemoved(1)
-        assertEquals(listOf(bench, squat), viewModel.uiState.value.exercises)
+        assertEquals(items(bench, squat), viewModel.uiState.value.exercises)
     }
 
     @Test
@@ -136,7 +139,7 @@ class RoutineEditorViewModelTest {
 
         assertTrue(viewModel.uiState.value.isSaved)
         val saved = routines.observeRoutines().first().single { it.name == "Legs" }
-        assertEquals(listOf(squat), saved.exercises)
+        assertEquals(items(squat), saved.exercises)
     }
 
     @Test
@@ -149,7 +152,7 @@ class RoutineEditorViewModelTest {
 
         val all = routines.observeRoutines().first()
         assertEquals(1, all.size)
-        assertEquals(Routine(5, "Full body B", listOf(squat, bench)), all.single())
+        assertEquals(Routine(5, "Full body B", items(squat, bench)), all.single())
     }
 
     @Test

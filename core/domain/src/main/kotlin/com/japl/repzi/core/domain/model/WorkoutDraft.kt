@@ -20,4 +20,6 @@ data class DraftExercise(
 data class DraftSet(
     val weight: String,
     val reps: String,
+    /** Whether the user ticked the set as done, which is what starts the rest timer. */
+    val done: Boolean = false,
 )

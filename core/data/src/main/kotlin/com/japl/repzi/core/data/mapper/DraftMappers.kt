@@ -23,6 +23,7 @@ internal fun WorkoutDraft.toSetEntities(): List<DraftSetEntity> =
                 exerciseId = exercise.exerciseId,
                 weight = set.weight,
                 reps = set.reps,
+                done = set.done,
             )
         }
     }
@@ -37,7 +38,7 @@ internal fun WorkoutDraftWithSets.toDomain() = WorkoutDraft(
         .map { group ->
             DraftExercise(
                 exerciseId = group.first().exerciseId,
-                sets = group.sortedBy { it.setIndex }.map { DraftSet(it.weight, it.reps) },
+                sets = group.sortedBy { it.setIndex }.map { DraftSet(it.weight, it.reps, it.done) },
             )
         },
 )

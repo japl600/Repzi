@@ -33,4 +33,6 @@ data class RoutineExerciseEntity(
     @ColumnInfo(name = "routine_id") val routineId: Long,
     val position: Int,
     @ColumnInfo(name = "exercise_id") val exerciseId: Long,
+    /** Rest between sets, in seconds. Null means the routine uses no rest timer for this exercise. */
+    @ColumnInfo(name = "rest_seconds") val restSeconds: Int? = null,
 )

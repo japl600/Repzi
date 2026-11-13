@@ -3,6 +3,7 @@ package com.japl.repzi.feature.routines
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.Routine
+import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.domain.usecase.DeleteRoutineUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRoutinesUseCase
 import com.japl.repzi.core.testing.FakeRoutineRepository
@@ -25,8 +26,8 @@ class RoutinesViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val squat = Exercise(1, "Sentadilla", MuscleGroup.LEGS, isCustom = false)
-    private val push = Routine(1, "push", listOf(squat))
-    private val back = Routine(2, "Back", listOf(squat, squat.copy(id = 2)))
+    private val push = Routine(1, "push", listOf(RoutineExercise(squat)))
+    private val back = Routine(2, "Back", listOf(RoutineExercise(squat), RoutineExercise(squat.copy(id = 2))))
 
     private val repository = FakeRoutineRepository(listOf(push, back))
 
