@@ -8,6 +8,8 @@ An Android app for logging gym workouts (predefined and custom routines). It is 
 
 Kotlin, Coroutines and Flow, Jetpack Compose (Material 3, own teal/navy palette, no dynamic color), Hilt, Room, Navigation Compose, Gradle with convention plugins and a version catalog.
 
+The UI is in English and Spanish. English is the default language and `values-es` holds the translation in each module; the built-in exercises are stored with a stable key (`exercises.seed_key`) and translated when shown, so their names follow the app language. Android 13+ offers a per-app language setting.
+
 ## Architecture
 
 Clean Architecture modularized by layer and by feature. Screens use MVVM with a single UI state; the workout session screen uses MVI (intents, a pure reducer and one-shot effects).

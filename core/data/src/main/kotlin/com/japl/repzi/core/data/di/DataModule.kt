@@ -1,6 +1,8 @@
 package com.japl.repzi.core.data.di
 
 import com.japl.repzi.core.data.DefaultDispatcherProvider
+import com.japl.repzi.core.data.ExerciseNames
+import com.japl.repzi.core.data.ResourceExerciseNames
 import com.japl.repzi.core.data.repository.OfflineFirstDraftRepository
 import com.japl.repzi.core.data.repository.OfflineFirstExerciseRepository
 import com.japl.repzi.core.data.repository.OfflineFirstRoutineRepository
@@ -30,6 +32,9 @@ internal abstract class DataModule {
 
     @Binds
     abstract fun bindDraftRepository(impl: OfflineFirstDraftRepository): DraftRepository
+
+    @Binds
+    abstract fun bindExerciseNames(impl: ResourceExerciseNames): ExerciseNames
 
     @Binds
     abstract fun bindDispatcherProvider(impl: DefaultDispatcherProvider): DispatcherProvider

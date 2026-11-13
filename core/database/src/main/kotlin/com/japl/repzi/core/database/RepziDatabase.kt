@@ -24,7 +24,7 @@ import com.japl.repzi.core.database.model.WorkoutSessionEntity
         WorkoutDraftEntity::class,
         DraftSetEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class RepziDatabase : RoomDatabase() {

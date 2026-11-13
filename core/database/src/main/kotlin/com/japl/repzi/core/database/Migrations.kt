@@ -67,4 +67,21 @@ internal val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
-internal val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+/**
+ * Adds exercises.seed_key and tags the built-in exercises with it, so their names can be translated.
+ * The built-in rows were stored in Spanish, so they are recognized by that name (only the ones that are
+ * not custom) and renamed to the English fallback. Exercises the user created keep a null key.
+ */
+internal val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `exercises` ADD COLUMN `seed_key` TEXT")
+        SeedExercises.ALL.forEach { exercise ->
+            db.execSQL(
+                "UPDATE exercises SET seed_key = ?, name = ? WHERE name = ? AND is_custom = 0",
+                arrayOf(exercise.key, exercise.englishName, exercise.legacyName),
+            )
+        }
+    }
+}
+
+internal val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)

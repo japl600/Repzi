@@ -1,5 +1,6 @@
 package com.japl.repzi.core.data.mapper
 
+import com.japl.repzi.core.data.ExerciseNames
 import com.japl.repzi.core.database.model.LoggedSetEntity
 import com.japl.repzi.core.database.model.WorkoutSessionEntity
 import com.japl.repzi.core.database.model.WorkoutSessionWithSets
@@ -30,7 +31,7 @@ internal fun WorkoutSession.toSetEntities(): List<LoggedSetEntity> =
         }
     }
 
-internal fun WorkoutSessionWithSets.toDomain() = WorkoutSession(
+internal fun WorkoutSessionWithSets.toDomain(names: ExerciseNames) = WorkoutSession(
     id = session.id,
     routineName = session.routineName,
     startedAt = Instant.fromEpochMilliseconds(session.startedAt),
@@ -41,7 +42,7 @@ internal fun WorkoutSessionWithSets.toDomain() = WorkoutSession(
         .values
         .map { group ->
             LoggedExercise(
-                exercise = group.first().exercise.toDomain(),
+                exercise = group.first().exercise.toDomain(names),
                 sets = group.sortedBy { it.set.setIndex }.map { LoggedSet(it.set.reps, it.set.weightKg) },
             )
         },
