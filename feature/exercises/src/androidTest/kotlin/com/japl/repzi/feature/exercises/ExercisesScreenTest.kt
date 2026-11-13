@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.japl.repzi.core.domain.model.Exercise
@@ -20,16 +21,21 @@ class ExercisesScreenTest {
     val rule = createAndroidComposeRule<ComponentActivity>()
 
     private val selections = mutableListOf<MuscleGroup?>()
+    private val progressOpened = mutableListOf<Long>()
 
     private fun setScreen(uiState: ExercisesUiState) {
         rule.setContent {
             RepziTheme(dynamicColor = false) {
-                ExercisesScreen(uiState = uiState, onGroupSelected = { selections += it })
+                ExercisesScreen(
+                    uiState = uiState,
+                    onGroupSelected = { selections += it },
+                    onOpenProgress = { progressOpened += it },
+                )
             }
         }
     }
 
-    private fun string(@StringRes id: Int) = rule.activity.getString(id)
+    private fun string(@StringRes id: Int, vararg args: Any) = rule.activity.getString(id, *args)
 
     @Test
     fun showsEachExerciseWithItsMuscleGroup() {
@@ -72,5 +78,37 @@ class ExercisesScreenTest {
         setScreen(ExercisesUiState(isLoading = false, selectedGroup = MuscleGroup.CHEST))
 
         rule.onNodeWithText(string(R.string.muscle_group_chest)).assertIsSelected()
+    }
+
+    @Test
+    fun onlyExercisesWithProgressHaveAProgressButton() {
+        setScreen(
+            ExercisesUiState(
+                isLoading = false,
+                exercises = listOf(
+                    Exercise(1, "Sentadilla", MuscleGroup.LEGS, isCustom = false),
+                    Exercise(2, "Plancha", MuscleGroup.CORE, isCustom = false),
+                ),
+                exercisesWithProgress = setOf(1),
+            ),
+        )
+
+        rule.onNodeWithContentDescription(string(R.string.exercises_progress, "Sentadilla")).assertIsDisplayed()
+        rule.onNodeWithContentDescription(string(R.string.exercises_progress, "Plancha")).assertDoesNotExist()
+    }
+
+    @Test
+    fun theProgressButtonReportsItsExercise() {
+        setScreen(
+            ExercisesUiState(
+                isLoading = false,
+                exercises = listOf(Exercise(7, "Sentadilla", MuscleGroup.LEGS, isCustom = false)),
+                exercisesWithProgress = setOf(7),
+            ),
+        )
+
+        rule.onNodeWithContentDescription(string(R.string.exercises_progress, "Sentadilla")).performClick()
+
+        assertEquals(listOf(7L), progressOpened)
     }
 }

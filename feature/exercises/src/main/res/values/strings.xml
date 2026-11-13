@@ -4,6 +4,7 @@
     <string name="exercises_filter_all">Todos</string>
     <string name="exercises_empty">No hay ejercicios para este grupo muscular.</string>
     <string name="exercises_custom_badge">Personalizado</string>
+    <string name="exercises_progress">Ver progreso de %1$s</string>
 
     <string name="muscle_group_chest">Pecho</string>
     <string name="muscle_group_back">Espalda</string>

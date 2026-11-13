@@ -6,7 +6,7 @@ An Android app for logging gym workouts (predefined and custom routines). It is 
 
 ## Stack
 
-Kotlin, Coroutines and Flow, Jetpack Compose (Material 3), Hilt, Room, Navigation Compose, Gradle with convention plugins and a version catalog.
+Kotlin, Coroutines and Flow, Jetpack Compose (Material 3, own teal/navy palette, no dynamic color), Hilt, Room, Navigation Compose, Gradle with convention plugins and a version catalog.
 
 ## Architecture
 
@@ -25,6 +25,7 @@ feature/
   routines               create, edit, reorder and delete custom routines (implemented)
   session                log sets, reps and weight for a routine, built with MVI; the workout in progress is saved as a draft in Room and resumes after the app is closed (implemented)
   history                finished workouts, most recent first, with duration and volume (implemented)
+  progress               max weight per session for an exercise as a Canvas line chart with date ranges, opened from Exercises or History (implemented)
 build-logic/convention   convention plugins (repzi.android.*, repzi.jvm.library)
 ```
 

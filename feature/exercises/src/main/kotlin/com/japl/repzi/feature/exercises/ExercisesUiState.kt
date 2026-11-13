@@ -7,4 +7,6 @@ data class ExercisesUiState(
     val isLoading: Boolean = true,
     val exercises: List<Exercise> = emptyList(),
     val selectedGroup: MuscleGroup? = null,
+    /** Ids of the exercises with logged weight, which are the ones that get a progress button. */
+    val exercisesWithProgress: Set<Long> = emptySet(),
 )

@@ -19,6 +19,8 @@ import androidx.navigation.compose.rememberNavController
 import com.japl.repzi.feature.exercises.EXERCISES_ROUTE
 import com.japl.repzi.feature.exercises.exercisesScreen
 import com.japl.repzi.feature.history.historyScreen
+import com.japl.repzi.feature.progress.navigateToProgress
+import com.japl.repzi.feature.progress.progressScreen
 import com.japl.repzi.feature.routines.routinesScreens
 import com.japl.repzi.feature.session.navigateToSession
 import com.japl.repzi.feature.session.sessionScreen
@@ -61,10 +63,11 @@ fun RepziNavHost() {
             // consumeWindowInsets stops the inner Scaffolds from adding the bottom inset a second time.
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
-            exercisesScreen()
+            exercisesScreen(onOpenProgress = navController::navigateToProgress)
             routinesScreens(navController, onStartRoutine = navController::navigateToSession)
             sessionScreen(navController)
-            historyScreen()
+            historyScreen(onOpenProgress = { navController.navigateToProgress() })
+            progressScreen(navController)
         }
     }
 }

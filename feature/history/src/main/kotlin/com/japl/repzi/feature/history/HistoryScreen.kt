@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,7 @@ import com.japl.repzi.core.ui.component.EmptyState
 
 @Composable
 fun HistoryRoute(
+    onOpenProgress: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
@@ -49,6 +51,7 @@ fun HistoryRoute(
         onDeleteRequested = viewModel::onDeleteRequested,
         onDeleteConfirmed = viewModel::onDeleteConfirmed,
         onDeleteDismissed = viewModel::onDeleteDismissed,
+        onOpenProgress = onOpenProgress,
         modifier = modifier,
     )
 }
@@ -60,11 +63,27 @@ internal fun HistoryScreen(
     onDeleteRequested: (WorkoutSession) -> Unit,
     onDeleteConfirmed: () -> Unit,
     onDeleteDismissed: () -> Unit,
+    onOpenProgress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier,
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.history_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.history_title)) },
+                actions = {
+                    // Without finished workouts there is nothing to chart yet.
+                    if (uiState.sessions.isNotEmpty()) {
+                        IconButton(onClick = onOpenProgress) {
+                            Icon(
+                                painter = painterResource(com.japl.repzi.core.ui.R.drawable.ic_trending_up),
+                                contentDescription = stringResource(R.string.history_progress),
+                            )
+                        }
+                    }
+                },
+            )
+        },
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {

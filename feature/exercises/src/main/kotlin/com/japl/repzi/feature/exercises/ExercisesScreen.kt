@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -30,6 +33,7 @@ import com.japl.repzi.core.ui.component.EmptyState
 
 @Composable
 fun ExercisesRoute(
+    onOpenProgress: (exerciseId: Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ExercisesViewModel = hiltViewModel(),
 ) {
@@ -37,6 +41,7 @@ fun ExercisesRoute(
     ExercisesScreen(
         uiState = uiState,
         onGroupSelected = viewModel::onGroupSelected,
+        onOpenProgress = onOpenProgress,
         modifier = modifier,
     )
 }
@@ -46,6 +51,7 @@ fun ExercisesRoute(
 internal fun ExercisesScreen(
     uiState: ExercisesUiState,
     onGroupSelected: (MuscleGroup?) -> Unit,
+    onOpenProgress: (exerciseId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -69,6 +75,19 @@ internal fun ExercisesScreen(
                                 val group = stringResource(exercise.muscleGroup.labelRes())
                                 val custom = stringResource(R.string.exercises_custom_badge)
                                 Text(if (exercise.isCustom) "$group · $custom" else group)
+                            },
+                            // Only exercises with logged weight have a chart; the others keep the row empty.
+                            trailingContent = if (exercise.id in uiState.exercisesWithProgress) {
+                                {
+                                    IconButton(onClick = { onOpenProgress(exercise.id) }) {
+                                        Icon(
+                                            painter = painterResource(com.japl.repzi.core.ui.R.drawable.ic_trending_up),
+                                            contentDescription = stringResource(R.string.exercises_progress, exercise.name),
+                                        )
+                                    }
+                                }
+                            } else {
+                                null
                             },
                         )
                     }

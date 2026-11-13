@@ -5,6 +5,6 @@ import androidx.navigation.compose.composable
 
 const val EXERCISES_ROUTE = "exercises"
 
-fun NavGraphBuilder.exercisesScreen() {
-    composable(EXERCISES_ROUTE) { ExercisesRoute() }
+fun NavGraphBuilder.exercisesScreen(onOpenProgress: (exerciseId: Long) -> Unit) {
+    composable(EXERCISES_ROUTE) { ExercisesRoute(onOpenProgress = onOpenProgress) }
 }

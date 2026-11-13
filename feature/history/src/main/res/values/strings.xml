@@ -4,6 +4,7 @@
     <string name="history_empty">Aún no has registrado entrenamientos. Inicia uno desde Rutinas con el botón ▶.</string>
     <string name="history_delete">Eliminar</string>
     <string name="history_cancel">Cancelar</string>
+    <string name="history_progress">Ver progreso</string>
     <string name="history_delete_title">Eliminar entrenamiento</string>
     <string name="history_delete_message">¿Eliminar el entrenamiento \"%1$s\"? Esta acción no se puede deshacer.</string>
     <string name="history_summary">%1$s · %2$s kg levantados</string>

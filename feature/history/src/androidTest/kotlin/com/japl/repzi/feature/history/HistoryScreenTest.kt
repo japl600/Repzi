@@ -39,6 +39,7 @@ class HistoryScreenTest {
     private val deleteRequested = mutableListOf<WorkoutSession>()
     private var deleteConfirmed = 0
     private var deleteDismissed = 0
+    private var progressOpened = 0
 
     private fun setScreen(uiState: HistoryUiState) {
         rule.setContent {
@@ -48,6 +49,7 @@ class HistoryScreenTest {
                     onDeleteRequested = { deleteRequested += it },
                     onDeleteConfirmed = { deleteConfirmed++ },
                     onDeleteDismissed = { deleteDismissed++ },
+                    onOpenProgress = { progressOpened++ },
                 )
             }
         }
@@ -119,5 +121,21 @@ class HistoryScreenTest {
 
         assertEquals(1, deleteDismissed)
         assertEquals(0, deleteConfirmed)
+    }
+
+    @Test
+    fun theProgressButtonOpensTheProgressScreen() {
+        setScreen(HistoryUiState(isLoading = false, sessions = listOf(fullBody)))
+
+        rule.onNodeWithContentDescription(string(R.string.history_progress)).performClick()
+
+        assertEquals(1, progressOpened)
+    }
+
+    @Test
+    fun thereIsNoProgressButtonWithoutSessions() {
+        setScreen(HistoryUiState(isLoading = false))
+
+        rule.onNodeWithContentDescription(string(R.string.history_progress)).assertDoesNotExist()
     }
 }
