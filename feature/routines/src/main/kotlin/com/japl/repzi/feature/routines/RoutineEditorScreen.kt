@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -18,6 +19,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,11 +45,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.japl.repzi.core.domain.model.Exercise
+import com.japl.repzi.core.domain.model.RestTimer
+import com.japl.repzi.core.ui.component.RestTimePickerDialog
+import com.japl.repzi.core.ui.component.formatRestTime
 
 @Composable
 fun RoutineEditorRoute(
@@ -70,6 +79,7 @@ fun RoutineEditorRoute(
         onExerciseRemoved = viewModel::onExerciseRemoved,
         onExerciseMovedUp = viewModel::onExerciseMovedUp,
         onExerciseMovedDown = viewModel::onExerciseMovedDown,
+        onRestChanged = viewModel::onRestChanged,
         onSave = viewModel::onSaveClicked,
         modifier = modifier,
     )
@@ -86,10 +96,13 @@ internal fun RoutineEditorScreen(
     onExerciseRemoved: (Int) -> Unit,
     onExerciseMovedUp: (Int) -> Unit,
     onExerciseMovedDown: (Int) -> Unit,
+    onRestChanged: (index: Int, seconds: Int?) -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showPicker by rememberSaveable { mutableStateOf(false) }
+    // Index of the exercise whose rest is being edited, or null while the rest picker is closed.
+    var restEditing by rememberSaveable { mutableStateOf<Int?>(null) }
 
     Scaffold(
         modifier = modifier,
@@ -146,6 +159,13 @@ internal fun RoutineEditorScreen(
             itemsIndexed(uiState.exercises, key = { _, item -> item.exercise.id }) { index, item ->
                 ListItem(
                     headlineContent = { Text(item.exercise.name) },
+                    supportingContent = {
+                        RestChip(
+                            exerciseName = item.exercise.name,
+                            restSeconds = item.restSeconds,
+                            onClick = { restEditing = index },
+                        )
+                    },
                     trailingContent = {
                         Row {
                             IconButton(onClick = { onExerciseMovedUp(index) }, enabled = index > 0) {
@@ -201,6 +221,50 @@ internal fun RoutineEditorScreen(
             onDismiss = { showPicker = false },
         )
     }
+
+    restEditing?.let { index ->
+        val item = uiState.exercises.getOrNull(index)
+        if (item == null) {
+            restEditing = null
+        } else {
+            RestTimePickerDialog(
+                options = RestTimer.options,
+                initialSeconds = item.restSeconds,
+                onConfirm = {
+                    onRestChanged(index, it)
+                    restEditing = null
+                },
+                onDismiss = { restEditing = null },
+            )
+        }
+    }
+}
+
+/** Shows the rest of an exercise and opens the rest picker when tapped. */
+@Composable
+private fun RestChip(
+    exerciseName: String,
+    restSeconds: Int?,
+    onClick: () -> Unit,
+) {
+    val label = if (restSeconds == null) {
+        stringResource(R.string.editor_rest_none)
+    } else {
+        stringResource(R.string.editor_rest_value, formatRestTime(restSeconds))
+    }
+    val description = stringResource(R.string.editor_rest_edit, exerciseName)
+    AssistChip(
+        onClick = onClick,
+        label = { Text(label) },
+        leadingIcon = {
+            Icon(
+                painter = painterResource(com.japl.repzi.core.ui.R.drawable.ic_timer),
+                contentDescription = null,
+                modifier = Modifier.size(AssistChipDefaults.IconSize),
+            )
+        },
+        modifier = Modifier.semantics { contentDescription = description },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

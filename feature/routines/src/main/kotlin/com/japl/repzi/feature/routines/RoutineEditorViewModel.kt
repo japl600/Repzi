@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.japl.repzi.core.domain.model.Exercise
+import com.japl.repzi.core.domain.model.RestTimer
 import com.japl.repzi.core.domain.model.Routine
 import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
@@ -70,13 +71,22 @@ class RoutineEditorViewModel @Inject constructor(
             val exercises = if (state.exercises.any { it.exercise.id == exercise.id }) {
                 state.exercises.filterNot { it.exercise.id == exercise.id }
             } else {
-                state.exercises + RoutineExercise(exercise)
+                state.exercises + RoutineExercise(exercise, RestTimer.defaultFor(exercise.muscleGroup))
             }
             state.copy(exercises = exercises, error = null)
         }
     }
 
     fun onExerciseRemoved(index: Int) = reorder { it.apply { removeAt(index) } }
+
+    /** Sets the rest between the sets of the exercise at [index], null meaning no rest timer. */
+    fun onRestChanged(index: Int, seconds: Int?) {
+        _uiState.update { state ->
+            if (index !in state.exercises.indices) return@update state
+            val exercises = state.exercises.mapIndexed { i, item -> if (i == index) item.copy(restSeconds = seconds) else item }
+            state.copy(exercises = exercises)
+        }
+    }
 
     fun onExerciseMovedUp(index: Int) = move(index, index - 1)
 

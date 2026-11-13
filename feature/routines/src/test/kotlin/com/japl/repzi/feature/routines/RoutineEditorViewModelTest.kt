@@ -3,6 +3,7 @@ package com.japl.repzi.feature.routines
 import androidx.lifecycle.SavedStateHandle
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
+import com.japl.repzi.core.domain.model.RestTimer
 import com.japl.repzi.core.domain.model.Routine
 import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
@@ -38,6 +39,9 @@ class RoutineEditorViewModelTest {
 
     private fun items(vararg exercises: Exercise) = exercises.map { RoutineExercise(it) }
 
+    private fun withDefaultRest(vararg exercises: Exercise) =
+        exercises.map { RoutineExercise(it, RestTimer.defaultFor(it.muscleGroup)) }
+
     private fun createViewModel(routineId: Long? = null) = RoutineEditorViewModel(
         savedStateHandle = SavedStateHandle(if (routineId == null) emptyMap() else mapOf(ROUTINE_ID_ARG to routineId)),
         observeExercises = ObserveExercisesUseCase(exercises),
@@ -71,10 +75,65 @@ class RoutineEditorViewModelTest {
 
         viewModel.onExerciseToggled(bench)
         viewModel.onExerciseToggled(squat)
-        assertEquals(items(bench, squat), viewModel.uiState.value.exercises)
+        assertEquals(withDefaultRest(bench, squat), viewModel.uiState.value.exercises)
 
         viewModel.onExerciseToggled(bench)
-        assertEquals(items(squat), viewModel.uiState.value.exercises)
+        assertEquals(withDefaultRest(squat), viewModel.uiState.value.exercises)
+    }
+
+    @Test
+    fun aCoreExerciseStartsWithAShortRestAndTheRestWithAMinute() = runTest {
+        val plank = Exercise(4, "Plancha", MuscleGroup.CORE, isCustom = false)
+        val viewModel = createViewModel()
+
+        viewModel.onExerciseToggled(plank)
+        viewModel.onExerciseToggled(squat)
+
+        assertEquals(listOf(20, 60), viewModel.uiState.value.exercises.map { it.restSeconds })
+    }
+
+    @Test
+    fun theRestOfOneExerciseCanBeChangedOrTurnedOff() = runTest {
+        val viewModel = createViewModel(routineId = 5)
+
+        viewModel.onRestChanged(1, 90)
+        assertEquals(listOf(null, 90, null), viewModel.uiState.value.exercises.map { it.restSeconds })
+
+        viewModel.onRestChanged(1, null)
+        assertEquals(listOf<Int?>(null, null, null), viewModel.uiState.value.exercises.map { it.restSeconds })
+    }
+
+    @Test
+    fun changingTheRestOfAnUnknownPositionIsIgnored() = runTest {
+        val viewModel = createViewModel(routineId = 5)
+
+        viewModel.onRestChanged(9, 90)
+        viewModel.onRestChanged(-1, 90)
+
+        assertEquals(items(squat, bench, row), viewModel.uiState.value.exercises)
+    }
+
+    @Test
+    fun theRestFollowsItsExerciseWhenTheListIsReordered() = runTest {
+        val viewModel = createViewModel(routineId = 5)
+        viewModel.onRestChanged(0, 120)
+
+        viewModel.onExerciseMovedDown(0)
+
+        assertEquals(listOf(bench, squat, row), viewModel.uiState.value.exercises.map { it.exercise })
+        assertEquals(listOf(null, 120, null), viewModel.uiState.value.exercises.map { it.restSeconds })
+    }
+
+    @Test
+    fun savingKeepsTheRestOfEachExercise() = runTest {
+        val viewModel = createViewModel(routineId = 5)
+        viewModel.onRestChanged(0, 180)
+        viewModel.onRestChanged(2, 30)
+
+        viewModel.onSaveClicked()
+
+        val saved = routines.observeRoutines().first().single()
+        assertEquals(listOf(180, null, 30), saved.exercises.map { it.restSeconds })
     }
 
     @Test
@@ -139,7 +198,7 @@ class RoutineEditorViewModelTest {
 
         assertTrue(viewModel.uiState.value.isSaved)
         val saved = routines.observeRoutines().first().single { it.name == "Legs" }
-        assertEquals(items(squat), saved.exercises)
+        assertEquals(withDefaultRest(squat), saved.exercises)
     }
 
     @Test

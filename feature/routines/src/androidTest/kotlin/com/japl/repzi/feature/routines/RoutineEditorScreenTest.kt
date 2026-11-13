@@ -5,7 +5,10 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -15,6 +18,7 @@ import androidx.compose.ui.test.performTextInput
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.RoutineExercise
+import com.japl.repzi.core.ui.R as UiR
 import com.japl.repzi.core.ui.theme.RepziTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -41,6 +45,7 @@ class RoutineEditorScreenTest {
     private val removed = mutableListOf<Int>()
     private val movedUp = mutableListOf<Int>()
     private val movedDown = mutableListOf<Int>()
+    private val restChanges = mutableListOf<Pair<Int, Int?>>()
     private var saved = 0
     private var back = 0
 
@@ -59,13 +64,18 @@ class RoutineEditorScreenTest {
                     onExerciseRemoved = { removed += it },
                     onExerciseMovedUp = { movedUp += it },
                     onExerciseMovedDown = { movedDown += it },
+                    onRestChanged = { index, seconds -> restChanges += index to seconds },
                     onSave = { saved++ },
                 )
             }
         }
     }
 
-    private fun string(@StringRes id: Int) = rule.activity.getString(id)
+    private fun string(@StringRes id: Int, vararg args: Any) = rule.activity.getString(id, *args)
+
+    // The editor has its own "Save" in the top bar, so the one in the rest picker is told apart by its dialog.
+    private fun dialogSave() =
+        rule.onNode(hasText(string(UiR.string.rest_picker_save)) and hasAnyAncestor(isDialog()))
 
     @Test
     fun theTitleTellsANewRoutineFromAnEditedOne() {
@@ -161,6 +171,51 @@ class RoutineEditorScreenTest {
         rule.onNodeWithText("Remo").performClick()
 
         assertEquals(listOf(row), toggled)
+    }
+
+    @Test
+    fun eachExerciseShowsItsRestOrThatThereIsNone() {
+        setScreen(
+            loaded.copy(exercises = listOf(RoutineExercise(squat, 90), RoutineExercise(bench, null))),
+        )
+
+        rule.onNodeWithText(string(R.string.editor_rest_value, "1:30")).assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.editor_rest_none)).assertIsDisplayed()
+    }
+
+    @Test
+    fun theRestChipOpensThePickerAndReportsTheChosenDuration() {
+        setScreen(loaded.copy(exercises = listOf(RoutineExercise(squat, 60), RoutineExercise(bench, 60))))
+
+        rule.onNodeWithContentDescription(string(R.string.editor_rest_edit, "Sentadilla")).performClick()
+        rule.onNodeWithText(string(UiR.string.rest_picker_title)).assertIsDisplayed()
+        rule.onNodeWithText("1:20").performClick()
+        dialogSave().performClick()
+
+        assertEquals(listOf<Pair<Int, Int?>>(0 to 80), restChanges)
+        rule.onNodeWithText(string(UiR.string.rest_picker_title)).assertDoesNotExist()
+    }
+
+    @Test
+    fun chooseNoRestTimerReportsNull() {
+        setScreen(loaded.copy(exercises = listOf(RoutineExercise(squat, 10), RoutineExercise(bench, 60))))
+
+        rule.onNodeWithContentDescription(string(R.string.editor_rest_edit, "Sentadilla")).performClick()
+        rule.onNodeWithText(string(UiR.string.rest_picker_none)).performClick()
+        dialogSave().performClick()
+
+        assertEquals(listOf<Pair<Int, Int?>>(0 to null), restChanges)
+    }
+
+    @Test
+    fun cancelingThePickerChangesNothing() {
+        setScreen()
+
+        rule.onNodeWithContentDescription(string(R.string.editor_rest_edit, "Press de banca")).performClick()
+        rule.onNodeWithText(string(UiR.string.rest_picker_cancel)).performClick()
+
+        assertEquals(emptyList(), restChanges)
+        rule.onNodeWithText(string(UiR.string.rest_picker_title)).assertDoesNotExist()
     }
 
     @Test
