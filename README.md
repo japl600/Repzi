@@ -4,6 +4,18 @@
 
 An Android app for logging gym workouts (predefined and custom routines). It is a practice project to review architecture and modern Android tooling.
 
+## Screenshots
+
+<p>
+  <img src="docs/screenshots/exercises.png" width="19%" alt="Exercise catalog filtered by muscle group">
+  <img src="docs/screenshots/routines.png" width="19%" alt="Custom routines">
+  <img src="docs/screenshots/session.png" width="19%" alt="Workout session in progress">
+  <img src="docs/screenshots/history.png" width="19%" alt="Workout history">
+  <img src="docs/screenshots/progress.png" width="19%" alt="Progress chart with metric selector">
+</p>
+
+Exercises, routines, a workout in progress, history and progress charts (the data shown is sample data).
+
 ## Stack
 
 Kotlin, Coroutines and Flow, Jetpack Compose (Material 3, own teal/navy palette, no dynamic color), Hilt, Room, Navigation Compose, Gradle with convention plugins and a version catalog.
