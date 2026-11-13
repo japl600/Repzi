@@ -12,4 +12,13 @@
     <string name="session_discard_message">You will lose the sets you have entered.</string>
     <string name="session_discard_confirm">Discard</string>
     <string name="session_discard_keep">Keep training</string>
+    <string name="session_set_done">Set %1$d done</string>
+    <string name="session_exercise_menu">More options for %1$s</string>
+    <string name="session_edit_rest">Edit rest timer</string>
+    <string name="session_rest_title">Rest</string>
+    <string name="session_rest_less">−%1$d s</string>
+    <string name="session_rest_more">+%1$d s</string>
+    <string name="session_rest_less_description">Take %1$d seconds off the rest</string>
+    <string name="session_rest_more_description">Add %1$d seconds to the rest</string>
+    <string name="session_rest_skip">Skip</string>
 </resources>

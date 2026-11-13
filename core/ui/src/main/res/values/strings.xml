@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Rest timer picker, shared by the routine editor and the workout session. -->
+    <string name="rest_picker_title">Rest timer</string>
+    <string name="rest_picker_none">No rest timer</string>
+    <string name="rest_picker_save">Save</string>
+    <string name="rest_picker_cancel">Cancel</string>
+    <string name="rest_picker_description">Rest between sets: %1$s</string>
+</resources>

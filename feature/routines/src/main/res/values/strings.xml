@@ -25,4 +25,7 @@
     <string name="editor_move_down">Move down</string>
     <string name="editor_remove">Remove from routine</string>
     <string name="editor_picker_done">Done</string>
+    <string name="editor_rest_none">No rest</string>
+    <string name="editor_rest_value">Rest %1$s</string>
+    <string name="editor_rest_edit">Edit the rest timer of %1$s</string>
 </resources>

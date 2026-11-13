@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rest_picker_title">Temporizador de descanso</string>
+    <string name="rest_picker_none">Sin descanso</string>
+    <string name="rest_picker_save">Guardar</string>
+    <string name="rest_picker_cancel">Cancelar</string>
+    <string name="rest_picker_description">Descanso entre series: %1$s</string>
+</resources>

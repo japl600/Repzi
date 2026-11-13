@@ -12,4 +12,13 @@
     <string name="session_discard_message">Perderás las series que has escrito.</string>
     <string name="session_discard_confirm">Descartar</string>
     <string name="session_discard_keep">Seguir entrenando</string>
+    <string name="session_set_done">Serie %1$d hecha</string>
+    <string name="session_exercise_menu">Más opciones de %1$s</string>
+    <string name="session_edit_rest">Editar descanso</string>
+    <string name="session_rest_title">Descanso</string>
+    <string name="session_rest_less">−%1$d s</string>
+    <string name="session_rest_more">+%1$d s</string>
+    <string name="session_rest_less_description">Quitar %1$d segundos al descanso</string>
+    <string name="session_rest_more_description">Añadir %1$d segundos al descanso</string>
+    <string name="session_rest_skip">Omitir</string>
 </resources>

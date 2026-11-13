@@ -25,4 +25,7 @@
     <string name="editor_move_down">Bajar</string>
     <string name="editor_remove">Quitar de la rutina</string>
     <string name="editor_picker_done">Listo</string>
+    <string name="editor_rest_none">Sin descanso</string>
+    <string name="editor_rest_value">Descanso %1$s</string>
+    <string name="editor_rest_edit">Editar el descanso de %1$s</string>
 </resources>
