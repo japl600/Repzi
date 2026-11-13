@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.ProgressPoint
@@ -89,8 +90,9 @@ class ProgressScreenTest {
     fun listsTheLatestSessions() {
         setScreen(withData)
 
-        rule.onNodeWithText(string(R.string.progress_set, "65", 4)).assertIsDisplayed()
-        rule.onNodeWithText(string(R.string.progress_set, "60", 5)).assertIsDisplayed()
+        // The list is at the bottom of a scrollable screen, so on small screens it starts off screen.
+        rule.onNodeWithText(string(R.string.progress_set, "65", 4)).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.progress_set, "60", 5)).performScrollTo().assertIsDisplayed()
     }
 
     @Test
