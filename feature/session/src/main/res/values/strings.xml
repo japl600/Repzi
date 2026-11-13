@@ -3,7 +3,7 @@
     <string name="session_close">Close</string>
     <string name="session_finish">Finish</string>
     <string name="session_set_label">Set %1$d</string>
-    <string name="session_weight_label">Weight (kg)</string>
+    <string name="session_weight_label">kg</string>
     <string name="session_reps_label">Reps</string>
     <string name="session_add_set">Add set</string>
     <string name="session_remove_set">Remove set</string>

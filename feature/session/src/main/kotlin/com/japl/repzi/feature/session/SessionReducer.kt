@@ -15,16 +15,29 @@ internal fun SessionState.reduce(intent: SessionIntent): SessionState = when (in
         it.copy(reps = intent.value.filter(Char::isDigit).take(MAX_REPS_DIGITS))
     }
     is SessionIntent.SetAdded -> updateSets(intent.exerciseIndex) { sets ->
-        // The new set starts as a copy of the previous one: lifters usually repeat the same weight and reps.
-        sets + (sets.lastOrNull() ?: SetInput())
+        // The new set starts as a copy of the previous one (unticked): lifters usually repeat the same weight and reps.
+        sets + (sets.lastOrNull()?.copy(done = false) ?: SetInput())
     }
     is SessionIntent.SetRemoved -> updateSets(intent.exerciseIndex) { sets ->
         // The last remaining set is never removed, so every exercise always has a row to type in.
         if (sets.size > 1) sets.filterIndexed { index, _ -> index != intent.setIndex } else sets
     }
+    is SessionIntent.SetDoneToggled -> updateSet(intent.exerciseIndex, intent.setIndex) {
+        it.copy(done = !it.done)
+    }
+    is SessionIntent.RestEditRequested ->
+        if (intent.exerciseIndex in exercises.indices) copy(restEditing = intent.exerciseIndex) else this
+    SessionIntent.RestEditDismissed -> copy(restEditing = null)
+    is SessionIntent.RestChanged ->
+        updateLog(intent.exerciseIndex) { it.copy(restSeconds = intent.seconds) }.copy(restEditing = null)
     SessionIntent.BackClicked -> copy(showDiscardDialog = hasInput)
     SessionIntent.DiscardDismissed -> copy(showDiscardDialog = false)
-    SessionIntent.FinishClicked, SessionIntent.DiscardConfirmed -> this
+    // The countdown depends on the clock, so the ViewModel owns it.
+    is SessionIntent.RestAdjusted,
+    SessionIntent.RestSkipped,
+    SessionIntent.FinishClicked,
+    SessionIntent.DiscardConfirmed,
+    -> this
 }
 
 private fun SessionState.updateSets(exerciseIndex: Int, change: (List<SetInput>) -> List<SetInput>): SessionState {
@@ -50,4 +63,9 @@ private fun String.toWeightInput(): String {
         normalized.substring(0, firstDot + 1) + normalized.substring(firstDot + 1).replace(".", "")
     }
     return singleDot.take(MAX_WEIGHT_CHARS)
+}
+
+private fun SessionState.updateLog(exerciseIndex: Int, change: (ExerciseLog) -> ExerciseLog): SessionState {
+    if (exerciseIndex !in exercises.indices) return this
+    return copy(exercises = exercises.mapIndexed { index, log -> if (index == exerciseIndex) change(log) else log })
 }

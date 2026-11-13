@@ -11,6 +11,8 @@ import androidx.compose.ui.test.assertAll
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isNotEnabled
@@ -23,6 +25,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
+import com.japl.repzi.core.ui.R as UiR
 import com.japl.repzi.core.ui.theme.RepziTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -191,5 +194,102 @@ class SessionScreenTest {
         rule.onNodeWithText(string(R.string.session_discard_confirm)).performClick()
 
         assertEquals(SessionIntent.DiscardConfirmed, intents.last())
+    }
+
+    @Test
+    fun tickingASetSendsTheIntentAndMarksIt() {
+        setScreen()
+
+        rule.onAllNodesWithContentDescription(string(R.string.session_set_done, 1))[0].performClick()
+
+        assertEquals(SessionIntent.SetDoneToggled(exerciseIndex = 0, setIndex = 0), intents.last())
+        rule.onAllNodesWithContentDescription(string(R.string.session_set_done, 1))[0].assertIsOn()
+        rule.onAllNodesWithContentDescription(string(R.string.session_set_done, 1))[1].assertIsOff()
+    }
+
+    @Test
+    fun noCountdownBarWhileNotResting() {
+        setScreen()
+
+        rule.onNodeWithText(string(R.string.session_rest_skip)).assertDoesNotExist()
+    }
+
+    @Test
+    fun theCountdownBarShowsTheTimeLeft() {
+        setScreen(loaded.copy(rest = RestCountdown(totalSeconds = 60, remainingSeconds = 45)))
+
+        rule.onNodeWithText("0:45").assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.session_rest_title)).assertIsDisplayed()
+    }
+
+    @Test
+    fun theCountdownButtonsMoveByFifteenSecondsWhileThereIsTimeLeft() {
+        setScreen(loaded.copy(rest = RestCountdown(60, 45)))
+
+        rule.onNodeWithContentDescription(string(R.string.session_rest_more_description, 15)).performClick()
+        rule.onNodeWithContentDescription(string(R.string.session_rest_less_description, 15)).performClick()
+
+        assertEquals(
+            listOf(SessionIntent.RestAdjusted(15), SessionIntent.RestAdjusted(-15)),
+            intents.filterIsInstance<SessionIntent.RestAdjusted>(),
+        )
+    }
+
+    @Test
+    fun theCountdownButtonsMoveByFiveSecondsNearTheEnd() {
+        setScreen(loaded.copy(rest = RestCountdown(60, 20)))
+
+        rule.onNodeWithContentDescription(string(R.string.session_rest_more_description, 5)).performClick()
+
+        assertEquals(SessionIntent.RestAdjusted(5), intents.last())
+        rule.onNodeWithText(string(R.string.session_rest_less, 5)).assertIsDisplayed()
+    }
+
+    @Test
+    fun skippingSendsTheIntent() {
+        setScreen(loaded.copy(rest = RestCountdown(60, 45)))
+
+        rule.onNodeWithText(string(R.string.session_rest_skip)).performClick()
+
+        assertEquals(SessionIntent.RestSkipped, intents.last())
+    }
+
+    @Test
+    fun theMenuOfAnExerciseOpensTheRestPicker() {
+        setScreen()
+
+        rule.onNodeWithContentDescription(string(R.string.session_exercise_menu, "Sentadilla")).performClick()
+        rule.onNodeWithText(string(R.string.session_edit_rest)).performClick()
+
+        assertEquals(SessionIntent.RestEditRequested(0), intents.last())
+        rule.onNodeWithText(string(UiR.string.rest_picker_title)).assertIsDisplayed()
+    }
+
+    @Test
+    fun choosingARestInThePickerSendsItForThatExercise() {
+        setScreen()
+        rule.onNodeWithContentDescription(string(R.string.session_exercise_menu, "Sentadilla")).performClick()
+        rule.onNodeWithText(string(R.string.session_edit_rest)).performClick()
+
+        rule.onNodeWithText("0:10").performClick()
+        rule.onNodeWithText(string(UiR.string.rest_picker_save)).performClick()
+
+        assertEquals(SessionIntent.RestChanged(exerciseIndex = 0, seconds = 10), intents.last())
+        rule.onNodeWithText(string(UiR.string.rest_picker_title)).assertDoesNotExist()
+    }
+
+    @Test
+    fun theRestPlannedAfterEachSetIsShownBetweenTheSets() {
+        setScreen(
+            loaded.copy(
+                exercises = listOf(
+                    ExerciseLog(squat, listOf(SetInput(), SetInput(), SetInput()), restSeconds = 90),
+                    ExerciseLog(bench, listOf(SetInput(), SetInput())),
+                ),
+            ),
+        )
+
+        // Three sets have two gaps; the exercise without a rest timer shows none.
+        rule.onAllNodesWithText("1:30").assertCountEquals(2)
     }
 }

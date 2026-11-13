@@ -17,6 +17,7 @@ import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
+import com.japl.repzi.core.domain.usecase.SetExerciseRestUseCase
 import com.japl.repzi.core.testing.FakeDraftRepository
 import com.japl.repzi.core.testing.FakeRoutineRepository
 import com.japl.repzi.core.testing.FakeSessionRepository
@@ -27,7 +28,11 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 
@@ -61,6 +66,7 @@ class SessionViewModelTest {
         getDraft = GetWorkoutDraftUseCase(draftRepository, clock),
         saveDraft = SaveWorkoutDraftUseCase(draftRepository),
         deleteDraft = DeleteWorkoutDraftUseCase(draftRepository),
+        setExerciseRest = SetExerciseRestUseCase(routines),
         clock = clock,
     )
 

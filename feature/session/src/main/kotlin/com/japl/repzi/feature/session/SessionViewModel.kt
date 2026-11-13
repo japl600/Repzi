@@ -9,14 +9,18 @@ import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.SaveSessionResult
 import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
+import com.japl.repzi.core.domain.usecase.SetExerciseRestUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +38,7 @@ class SessionViewModel @Inject constructor(
     private val getDraft: GetWorkoutDraftUseCase,
     private val saveDraft: SaveWorkoutDraftUseCase,
     private val deleteDraft: DeleteWorkoutDraftUseCase,
+    private val setExerciseRest: SetExerciseRestUseCase,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -52,6 +57,12 @@ class SessionViewModel @Inject constructor(
     val effects: Flow<SessionEffect> = _effects.receiveAsFlow()
 
     private var draftJob: Job? = null
+
+    // The rest in progress is kept as the moment it ends, not as a number that counts down, so it stays right
+    // however late the ticks arrive.
+    private var restJob: Job? = null
+    private var restEndsAt: Instant? = null
+    private var restTotalSeconds = 0
 
     init {
         viewModelScope.launch {
@@ -80,6 +91,10 @@ class SessionViewModel @Inject constructor(
                 if (_state.value.hasInput) _state.update { it.reduce(intent) } else close()
             }
             SessionIntent.DiscardConfirmed -> discard()
+            is SessionIntent.SetDoneToggled -> toggleDone(intent)
+            is SessionIntent.RestChanged -> changeRest(intent)
+            is SessionIntent.RestAdjusted -> adjustRest(intent.deltaSeconds)
+            SessionIntent.RestSkipped -> stopRest()
             else -> _state.update { it.reduce(intent) }
         }
     }
@@ -142,5 +157,85 @@ class SessionViewModel @Inject constructor(
 
     private fun close() {
         viewModelScope.launch { _effects.send(SessionEffect.Close) }
+    }
+
+    /** Ticking a set starts the rest of its exercise, if it has one; unticking only changes the tick. */
+    private fun toggleDone(intent: SessionIntent.SetDoneToggled) {
+        val log = _state.value.exercises.getOrNull(intent.exerciseIndex) ?: return
+        val wasDone = log.sets.getOrNull(intent.setIndex)?.done ?: return
+        _state.update { it.reduce(intent) }
+        if (!wasDone) log.restSeconds?.let(::startRest)
+    }
+
+    /** Applies the new rest on screen and keeps it in the routine, so the next workout starts with it. */
+    private fun changeRest(intent: SessionIntent.RestChanged) {
+        if (intent.exerciseIndex !in _state.value.exercises.indices) return
+        _state.update { it.reduce(intent) }
+        viewModelScope.launch {
+            // Remembering the rest is a convenience: failing to store it must not interrupt the workout.
+            try {
+                setExerciseRest(routineId, intent.exerciseIndex, intent.seconds)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // Best effort.
+            }
+        }
+    }
+
+    private fun startRest(seconds: Int) {
+        restJob?.cancel()
+        restTotalSeconds = seconds
+        restEndsAt = clock.now() + seconds.seconds
+        restJob = viewModelScope.launch { tickRest() }
+    }
+
+    private suspend fun tickRest() {
+        while (true) {
+            val endsAt = restEndsAt ?: return
+            val remaining = secondsUntil(endsAt)
+            if (remaining <= 0) {
+                clearRest()
+                _effects.send(SessionEffect.RestFinished)
+                return
+            }
+            _state.update { it.copy(rest = RestCountdown(restTotalSeconds, remaining)) }
+            delay(TICK)
+        }
+    }
+
+    /** Moves the end of the rest in progress. Taking away everything that was left ends it without a buzz. */
+    private fun adjustRest(deltaSeconds: Int) {
+        val endsAt = restEndsAt ?: return
+        val newEnd = endsAt + deltaSeconds.seconds
+        val remaining = secondsUntil(newEnd)
+        if (remaining <= 0) {
+            stopRest()
+            return
+        }
+        restEndsAt = newEnd
+        restTotalSeconds = (restTotalSeconds + deltaSeconds).coerceAtLeast(remaining)
+        _state.update { it.copy(rest = RestCountdown(restTotalSeconds, remaining)) }
+    }
+
+    private fun stopRest() {
+        restJob?.cancel()
+        clearRest()
+    }
+
+    private fun clearRest() {
+        restEndsAt = null
+        _state.update { it.copy(rest = null) }
+    }
+
+    /** Whole seconds left, rounded up so the screen shows 0:01 until the rest is really over. */
+    private fun secondsUntil(endsAt: Instant): Int {
+        val millis = (endsAt - clock.now()).inWholeMilliseconds
+        return ((millis + MILLIS_PER_SECOND - 1) / MILLIS_PER_SECOND).toInt()
+    }
+
+    private companion object {
+        val TICK = 200.milliseconds
+        const val MILLIS_PER_SECOND = 1_000L
     }
 }

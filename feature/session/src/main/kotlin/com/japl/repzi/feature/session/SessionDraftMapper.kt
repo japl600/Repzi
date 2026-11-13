@@ -6,11 +6,11 @@ import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.domain.model.WorkoutDraft
 import kotlin.time.Instant
 
-/** Only what the user typed is stored, keyed by exercise id: the routine itself is read again from Room. */
+/** Only what the user typed and ticked is stored, keyed by exercise id: the routine itself is read again from Room. */
 internal fun List<ExerciseLog>.toDraft(routineId: Long, startedAt: Instant) = WorkoutDraft(
     routineId = routineId,
     startedAt = startedAt,
-    exercises = map { log -> DraftExercise(log.exercise.id, log.sets.map { DraftSet(it.weight, it.reps) }) },
+    exercises = map { log -> DraftExercise(log.exercise.id, log.sets.map { DraftSet(it.weight, it.reps, it.done) }) },
 )
 
 /**
@@ -19,8 +19,8 @@ internal fun List<ExerciseLog>.toDraft(routineId: Long, startedAt: Instant) = Wo
  */
 internal fun List<RoutineExercise>.toLogs(draft: WorkoutDraft?): List<ExerciseLog> {
     val draftById = draft?.exercises.orEmpty().associateBy { it.exerciseId }
-    return map { (exercise) ->
-        val sets = draftById[exercise.id]?.sets?.map { SetInput(it.weight, it.reps) }
-        ExerciseLog(exercise, if (sets.isNullOrEmpty()) listOf(SetInput()) else sets)
+    return map { (exercise, restSeconds) ->
+        val sets = draftById[exercise.id]?.sets?.map { SetInput(it.weight, it.reps, it.done) }
+        ExerciseLog(exercise, if (sets.isNullOrEmpty()) listOf(SetInput()) else sets, restSeconds)
     }
 }

@@ -85,6 +85,84 @@ class SessionReducerTest {
     }
 
     @Test
+    fun theTickOfASetCanBeToggled() {
+        val ticked = initial.reduce(SessionIntent.SetDoneToggled(0, 0))
+        assertTrue(ticked.setsOf(0).single().done)
+        assertFalse(ticked.setsOf(1).single().done)
+
+        assertFalse(ticked.reduce(SessionIntent.SetDoneToggled(0, 0)).setsOf(0).single().done)
+    }
+
+    @Test
+    fun typingInATickedSetKeepsItTicked() {
+        val state = initial
+            .reduce(SessionIntent.SetDoneToggled(0, 0))
+            .reduce(SessionIntent.RepsChanged(0, 0, "8"))
+
+        assertEquals(SetInput(reps = "8", done = true), state.setsOf(0).single())
+    }
+
+    @Test
+    fun anAddedSetCopiesWeightAndRepsButStartsUnticked() {
+        val state = initial
+            .reduce(SessionIntent.WeightChanged(0, 0, "60"))
+            .reduce(SessionIntent.RepsChanged(0, 0, "8"))
+            .reduce(SessionIntent.SetDoneToggled(0, 0))
+            .reduce(SessionIntent.SetAdded(0))
+
+        assertEquals(
+            listOf(SetInput("60", "8", done = true), SetInput("60", "8", done = false)),
+            state.setsOf(0),
+        )
+    }
+
+    @Test
+    fun theTickDoesNotCountAsTypedInput() {
+        assertFalse(initial.reduce(SessionIntent.SetDoneToggled(0, 0)).hasInput)
+    }
+
+    @Test
+    fun tickingAnUnknownSetIsIgnored() {
+        assertEquals(initial, initial.reduce(SessionIntent.SetDoneToggled(9, 0)))
+        assertEquals(initial, initial.reduce(SessionIntent.SetDoneToggled(0, 9)))
+    }
+
+    @Test
+    fun theRestPickerOpensForOneExerciseAndCloses() {
+        val open = initial.reduce(SessionIntent.RestEditRequested(1))
+        assertEquals(1, open.restEditing)
+
+        assertNull(open.reduce(SessionIntent.RestEditDismissed).restEditing)
+        assertNull(initial.reduce(SessionIntent.RestEditRequested(9)).restEditing)
+    }
+
+    @Test
+    fun choosingARestUpdatesThatExerciseAndClosesThePicker() {
+        val state = initial
+            .reduce(SessionIntent.RestEditRequested(1))
+            .reduce(SessionIntent.RestChanged(1, 120))
+
+        assertEquals(listOf<Int?>(null, 120), state.exercises.map { it.restSeconds })
+        assertNull(state.restEditing)
+    }
+
+    @Test
+    fun theAdjustStepIsFineWhenTheRestIsAboutToEnd() {
+        assertEquals(5, restAdjustStep(10))
+        assertEquals(5, restAdjustStep(30))
+        assertEquals(15, restAdjustStep(31))
+        assertEquals(15, restAdjustStep(180))
+    }
+
+    @Test
+    fun theProgressOfARestGoesFromZeroToOne() {
+        assertEquals(0f, RestCountdown(60, 60).progress)
+        assertEquals(0.5f, RestCountdown(60, 30).progress)
+        assertEquals(1f, RestCountdown(60, 0).progress)
+        assertEquals(1f, RestCountdown(0, 0).progress)
+    }
+
+    @Test
     fun backOnlyAsksForConfirmationWhenSomethingWasTyped() {
         assertFalse(initial.reduce(SessionIntent.BackClicked).showDiscardDialog)
 
