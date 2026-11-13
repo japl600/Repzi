@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Repzi" parent="@android:style/Theme.DeviceDefault.NoActionBar" />
+    <!-- The window background matches the Compose theme so there is no flash of another color while it starts. -->
+    <style name="Theme.Repzi" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">#F4F8FA</item>
+    </style>
 </resources>
