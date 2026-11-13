@@ -6,16 +6,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,7 +29,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,8 +45,11 @@ fun ExercisesRoute(
     viewModel: ExercisesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     ExercisesScreen(
         uiState = uiState,
+        searchQuery = searchQuery,
+        onSearchQueryChange = viewModel::onSearchQueryChange,
         onGroupSelected = viewModel::onGroupSelected,
         onOpenProgress = onOpenProgress,
         modifier = modifier,
@@ -50,6 +60,8 @@ fun ExercisesRoute(
 @Composable
 internal fun ExercisesScreen(
     uiState: ExercisesUiState,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
     onGroupSelected: (MuscleGroup?) -> Unit,
     onOpenProgress: (exerciseId: Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -59,13 +71,20 @@ internal fun ExercisesScreen(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.exercises_title)) }) },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            SearchField(query = searchQuery, onQueryChange = onSearchQueryChange)
             MuscleGroupFilters(selected = uiState.selectedGroup, onSelected = onGroupSelected)
 
             when {
                 uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-                uiState.exercises.isEmpty() -> EmptyState(stringResource(R.string.exercises_empty))
+                uiState.exercises.isEmpty() -> EmptyState(
+                    if (searchQuery.isBlank()) {
+                        stringResource(R.string.exercises_empty)
+                    } else {
+                        stringResource(R.string.exercises_no_results, searchQuery.trim())
+                    },
+                )
                 else -> LazyColumn {
                     // key estable: evita recomponer y reubicar filas cuando cambia el filtro.
                     items(uiState.exercises, key = { it.id }) { exercise ->
@@ -95,6 +114,40 @@ internal fun ExercisesScreen(
             }
         }
     }
+}
+
+@Composable
+private fun SearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+) {
+    val keyboard = LocalSoftwareKeyboardController.current
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        placeholder = { Text(stringResource(R.string.exercises_search)) },
+        leadingIcon = {
+            Icon(painter = painterResource(com.japl.repzi.core.ui.R.drawable.ic_search), contentDescription = null)
+        },
+        trailingIcon = if (query.isNotEmpty()) {
+            {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        painter = painterResource(com.japl.repzi.core.ui.R.drawable.ic_close),
+                        contentDescription = stringResource(R.string.exercises_search_clear),
+                    )
+                }
+            }
+        } else {
+            null
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        // The list filters as you type, so the search key only has to get the keyboard out of the way.
+        keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
+        shape = RoundedCornerShape(28.dp),
+    )
 }
 
 @Composable

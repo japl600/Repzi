@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -24,6 +25,14 @@ class ExercisesViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val selectedGroup = MutableStateFlow<MuscleGroup?>(null)
+    private val query = MutableStateFlow("")
+
+    /**
+     * What is typed in the search field. It is exposed apart from [uiState] on purpose: the text
+     * field has to read it synchronously, and a value that comes back through the filtering flow
+     * arrives a frame late and makes the cursor jump while typing.
+     */
+    val searchQuery: StateFlow<String> = query.asStateFlow()
 
     private val exercisesWithProgress: Flow<Set<Long>> =
         observeTrackedExercises().map { tracked -> tracked.mapTo(HashSet()) { it.id } }
@@ -31,10 +40,10 @@ class ExercisesViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<ExercisesUiState> = selectedGroup
         .flatMapLatest { group ->
-            combine(observeExercises(group), exercisesWithProgress) { exercises, withProgress ->
+            combine(observeExercises(group), query, exercisesWithProgress) { exercises, query, withProgress ->
                 ExercisesUiState(
                     isLoading = false,
-                    exercises = exercises,
+                    exercises = exercises.filter { it.matchesSearch(query) },
                     selectedGroup = group,
                     exercisesWithProgress = withProgress,
                 )
@@ -48,6 +57,10 @@ class ExercisesViewModel @Inject constructor(
 
     fun onGroupSelected(group: MuscleGroup?) {
         selectedGroup.value = group
+    }
+
+    fun onSearchQueryChange(text: String) {
+        query.value = text
     }
 
     private companion object {

@@ -35,7 +35,7 @@ core/
   ui                     Material 3 theme and shared components
   testing                shared fakes and test rules
 feature/
-  exercises              exercise catalog filtered by muscle group (implemented)
+  exercises              exercise catalog filtered by muscle group and searchable by name, ignoring case and accents (implemented)
   routines               create, edit, reorder and delete custom routines (implemented)
   session                log sets, reps and weight for a routine, built with MVI; the workout in progress is saved as a draft in Room and resumes after the app is closed (implemented)
   history                finished workouts, most recent first, with duration and volume (implemented)

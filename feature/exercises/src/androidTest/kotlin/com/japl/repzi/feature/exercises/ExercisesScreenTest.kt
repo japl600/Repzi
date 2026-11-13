@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.ui.theme.RepziTheme
@@ -22,12 +23,15 @@ class ExercisesScreenTest {
 
     private val selections = mutableListOf<MuscleGroup?>()
     private val progressOpened = mutableListOf<Long>()
+    private val queries = mutableListOf<String>()
 
-    private fun setScreen(uiState: ExercisesUiState) {
+    private fun setScreen(uiState: ExercisesUiState, searchQuery: String = "") {
         rule.setContent {
             RepziTheme(dynamicColor = false) {
                 ExercisesScreen(
                     uiState = uiState,
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { queries += it },
                     onGroupSelected = { selections += it },
                     onOpenProgress = { progressOpened += it },
                 )
@@ -110,5 +114,37 @@ class ExercisesScreenTest {
         rule.onNodeWithContentDescription(string(R.string.exercises_progress, "Sentadilla")).performClick()
 
         assertEquals(listOf(7L), progressOpened)
+    }
+
+    @Test
+    fun typingInTheSearchFieldReportsTheText() {
+        setScreen(ExercisesUiState(isLoading = false))
+
+        rule.onNodeWithText(string(R.string.exercises_search)).performTextInput("sent")
+
+        assertEquals(listOf("sent"), queries)
+    }
+
+    @Test
+    fun theClearButtonOnlyShowsWhileThereIsText() {
+        setScreen(ExercisesUiState(isLoading = false))
+
+        rule.onNodeWithContentDescription(string(R.string.exercises_search_clear)).assertDoesNotExist()
+    }
+
+    @Test
+    fun theClearButtonEmptiesTheQuery() {
+        setScreen(ExercisesUiState(isLoading = false), searchQuery = "sent")
+
+        rule.onNodeWithContentDescription(string(R.string.exercises_search_clear)).performClick()
+
+        assertEquals(listOf(""), queries)
+    }
+
+    @Test
+    fun saysWhenNothingMatchesTheSearch() {
+        setScreen(ExercisesUiState(isLoading = false), searchQuery = "  xyz ")
+
+        rule.onNodeWithText(string(R.string.exercises_no_results, "xyz")).assertIsDisplayed()
     }
 }

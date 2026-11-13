@@ -84,4 +84,38 @@ class ExercisesViewModelTest {
 
         assertEquals(setOf(squat.id, bench.id), state.exercisesWithProgress)
     }
+
+    @Test
+    fun searchingFiltersByNameIgnoringCase() = runTest {
+        val viewModel = createViewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        viewModel.onSearchQueryChange("SENTADILLA")
+
+        assertEquals("SENTADILLA", viewModel.searchQuery.value)
+        assertEquals(listOf("Sentadilla"), viewModel.uiState.value.exercises.map { it.name })
+    }
+
+    @Test
+    fun clearingTheSearchBringsTheWholeListBack() = runTest {
+        val viewModel = createViewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        viewModel.onSearchQueryChange("banca")
+        viewModel.onSearchQueryChange("")
+
+        assertEquals(listOf("Press de banca", "Sentadilla"), viewModel.uiState.value.exercises.map { it.name })
+    }
+
+    @Test
+    fun theSearchAndTheMuscleGroupFilterApplyTogether() = runTest {
+        val viewModel = createViewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        viewModel.onGroupSelected(MuscleGroup.LEGS)
+        viewModel.onSearchQueryChange("banca")
+
+        assertEquals(emptyList(), viewModel.uiState.value.exercises)
+        assertFalse(viewModel.uiState.value.isLoading)
+    }
 }
