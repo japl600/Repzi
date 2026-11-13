@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Repzi</string>
-    <string name="nav_exercises">Ejercicios</string>
-    <string name="nav_routines">Rutinas</string>
-    <string name="nav_history">Historial</string>
+    <string name="nav_exercises">Exercises</string>
+    <string name="nav_routines">Routines</string>
+    <string name="nav_history">History</string>
 </resources>
