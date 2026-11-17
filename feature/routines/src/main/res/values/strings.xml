@@ -2,7 +2,7 @@
 <resources>
     <string name="routines_title">Routines</string>
     <string name="routines_create">Create routine</string>
-    <string name="routines_empty">You don\'t have any routines yet. Create the first one with the + button.</string>
+    <string name="routines_empty">You don\'t have any routines yet. Create one with the + button or add a predefined one below.</string>
     <string name="routines_start">Start workout</string>
     <string name="routines_delete">Delete</string>
     <string name="routines_cancel">Cancel</string>
@@ -28,4 +28,21 @@
     <string name="editor_rest_none">No rest</string>
     <string name="editor_rest_value">Rest %1$s</string>
     <string name="editor_rest_edit">Edit the rest timer of %1$s</string>
+
+    <string name="routines_my_title">My routines</string>
+    <string name="routines_predefined_title">Predefined routines</string>
+    <string name="routines_predefined_add">Add %1$s to my routines</string>
+    <string name="routines_predefined_added">\"%1$s\" added to your routines</string>
+    <string name="routines_predefined_open">Open</string>
+    <string name="routines_predefined_unavailable">The routine could not be added.</string>
+    <string name="predefined_full_body_name">Full body</string>
+    <string name="predefined_full_body_description">One session for the whole body</string>
+    <string name="predefined_push_name">Push</string>
+    <string name="predefined_push_description">Chest, shoulders and triceps</string>
+    <string name="predefined_pull_name">Pull</string>
+    <string name="predefined_pull_description">Back and biceps</string>
+    <string name="predefined_legs_name">Legs</string>
+    <string name="predefined_legs_description">Squat, leg press and lunges</string>
+    <string name="predefined_core_name">Core</string>
+    <string name="predefined_core_description">Abs and stability with short rests</string>
 </resources>
