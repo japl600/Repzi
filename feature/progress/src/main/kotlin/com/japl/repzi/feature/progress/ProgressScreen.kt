@@ -44,6 +44,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.ui.component.EmptyState
+import com.japl.repzi.core.ui.component.formatNumber
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.time.Instant

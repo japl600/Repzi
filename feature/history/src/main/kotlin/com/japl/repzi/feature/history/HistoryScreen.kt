@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.japl.repzi.core.domain.model.LoggedExercise
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.ui.component.EmptyState
+import com.japl.repzi.core.ui.component.formatNumber
 
 @Composable
 fun HistoryRoute(
@@ -148,7 +149,7 @@ private fun SessionCard(
                 text = stringResource(
                     R.string.history_summary,
                     pluralStringResource(R.plurals.history_minutes, minutes, minutes),
-                    formatKg(session.totalVolumeKg),
+                    formatNumber(session.totalVolumeKg),
                 ),
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -166,11 +167,7 @@ private fun SessionCard(
 private fun ExerciseSummary(logged: LoggedExercise) {
     Column {
         Text(logged.exercise.name, style = MaterialTheme.typography.titleSmall)
-        val sets = logged.sets.map { stringResource(R.string.history_set, formatKg(it.weightKg), it.reps) }
+        val sets = logged.sets.map { stringResource(R.string.history_set, formatNumber(it.weightKg), it.reps) }
         Text(sets.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
     }
 }
-
-/** Shows whole weights without the decimal part: 60 instead of 60.0. */
-internal fun formatKg(kg: Double): String =
-    if (kg % 1.0 == 0.0) kg.toLong().toString() else kg.toString()

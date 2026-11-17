@@ -17,6 +17,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import com.japl.repzi.core.ui.component.formatNumber
 
 import kotlin.time.Instant
 
@@ -123,7 +124,3 @@ internal fun ProgressChart(
         drawCircle(colors.primary, endRadius, coordinates.last())
     }
 }
-
-/** Shows whole numbers without the decimal part: 60 instead of 60.0. */
-internal fun formatNumber(kg: Double): String =
-    if (kg % 1.0 == 0.0) kg.toLong().toString() else kg.toString()
