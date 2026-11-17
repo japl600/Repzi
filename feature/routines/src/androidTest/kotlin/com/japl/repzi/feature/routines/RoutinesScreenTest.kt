@@ -4,13 +4,20 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
+import com.japl.repzi.core.domain.model.PredefinedRoutine
+import com.japl.repzi.core.domain.model.PredefinedRoutines
 import com.japl.repzi.core.domain.model.Routine
 import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.ui.theme.RepziTheme
@@ -26,8 +33,8 @@ class RoutinesScreenTest {
     private val squat = Exercise(1, "Sentadilla", MuscleGroup.LEGS, isCustom = false)
     private val bench = Exercise(2, "Press de banca", MuscleGroup.CHEST, isCustom = false)
 
-    private val fullBody = Routine(1, "Full body", listOf(RoutineExercise(squat), RoutineExercise(bench)))
-    private val legs = Routine(2, "Piernas", listOf(RoutineExercise(squat)))
+    private val fullBody = Routine(1, "Mi rutina", listOf(RoutineExercise(squat), RoutineExercise(bench)))
+    private val legs = Routine(2, "Tren inferior", listOf(RoutineExercise(squat)))
 
     private var created = 0
     private val opened = mutableListOf<Routine>()
@@ -35,6 +42,7 @@ class RoutinesScreenTest {
     private val deleteRequested = mutableListOf<Routine>()
     private var deleteConfirmed = 0
     private var deleteDismissed = 0
+    private val added = mutableListOf<Pair<PredefinedRoutine, String>>()
 
     private fun setScreen(uiState: RoutinesUiState) {
         rule.setContent {
@@ -47,6 +55,7 @@ class RoutinesScreenTest {
                     onDeleteRequested = { deleteRequested += it },
                     onDeleteConfirmed = { deleteConfirmed++ },
                     onDeleteDismissed = { deleteDismissed++ },
+                    onAddPredefined = { template, name -> added += template to name },
                 )
             }
         }
@@ -68,10 +77,11 @@ class RoutinesScreenTest {
     fun showsEachRoutineWithItsExerciseCount() {
         setScreen(RoutinesUiState(isLoading = false, routines = listOf(fullBody, legs)))
 
-        rule.onNodeWithText("Full body").assertIsDisplayed()
-        rule.onNodeWithText(exerciseCount(2)).assertIsDisplayed()
-        rule.onNodeWithText("Piernas").assertIsDisplayed()
-        rule.onNodeWithText(exerciseCount(1)).assertIsDisplayed()
+        rule.onNodeWithText("Mi rutina").assertIsDisplayed()
+        // The predefined routines below also show counts, so the first match is the one of the user's routine.
+        rule.onAllNodesWithText(exerciseCount(2)).onFirst().assertIsDisplayed()
+        rule.onNodeWithText("Tren inferior").assertIsDisplayed()
+        rule.onAllNodesWithText(exerciseCount(1)).onFirst().assertIsDisplayed()
     }
 
     @Test
@@ -87,7 +97,7 @@ class RoutinesScreenTest {
     fun tappingARoutineOpensIt() {
         setScreen(RoutinesUiState(isLoading = false, routines = listOf(fullBody, legs)))
 
-        rule.onNodeWithText("Piernas").performClick()
+        rule.onNodeWithText("Tren inferior").performClick()
 
         assertEquals(listOf(legs), opened)
         assertEquals(emptyList(), started)
@@ -125,7 +135,7 @@ class RoutinesScreenTest {
         setScreen(RoutinesUiState(isLoading = false, routines = listOf(fullBody), routineToDelete = fullBody))
 
         rule.onNodeWithText(string(R.string.routines_delete_title)).assertIsDisplayed()
-        rule.onNodeWithText(string(R.string.routines_delete_message, "Full body")).assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.routines_delete_message, "Mi rutina")).assertIsDisplayed()
         rule.onNodeWithText(string(R.string.routines_delete)).performClick()
 
         assertEquals(1, deleteConfirmed)
@@ -140,5 +150,52 @@ class RoutinesScreenTest {
 
         assertEquals(1, deleteDismissed)
         assertEquals(0, deleteConfirmed)
+    }
+
+    /** The predefined routines are below the user's own, so on a small screen they are not composed until scrolled to. */
+    private fun scrollTo(text: String) {
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText(text))
+    }
+
+    @Test
+    fun withoutRoutinesThePredefinedOnesAreStillOffered() {
+        setScreen(RoutinesUiState(isLoading = false))
+
+        scrollTo(string(R.string.predefined_push_name))
+
+        rule.onNodeWithText(string(R.string.routines_predefined_title)).assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.predefined_push_name)).assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.predefined_push_description)).assertIsDisplayed()
+    }
+
+    @Test
+    fun theUsersRoutinesGetTheirOwnTitle() {
+        setScreen(RoutinesUiState(isLoading = false, routines = listOf(fullBody)))
+
+        rule.onNodeWithText(string(R.string.routines_my_title)).assertIsDisplayed()
+    }
+
+    @Test
+    fun everyPredefinedRoutineIsListedWithItsExerciseCount() {
+        setScreen(RoutinesUiState(isLoading = false))
+
+        PredefinedRoutines.all.forEach { template ->
+            val texts = PREDEFINED_ROUTINE_TEXTS.getValue(template.key)
+            scrollTo(string(texts.name))
+            rule.onNodeWithText(string(texts.name)).assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun theAddButtonSendsTheTemplateWithItsNameInTheCurrentLanguage() {
+        setScreen(RoutinesUiState(isLoading = false, routines = listOf(fullBody)))
+        val template = PredefinedRoutines.all.first { it.key == "push" }
+        val name = string(R.string.predefined_push_name)
+
+        scrollTo(name)
+        rule.onNodeWithContentDescription(string(R.string.routines_predefined_add, name)).performClick()
+
+        assertEquals(listOf(template to name), added)
+        assertEquals(emptyList(), opened)
     }
 }
