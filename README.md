@@ -14,7 +14,7 @@ An Android app for logging gym workouts (predefined and custom routines). It is 
   <img src="docs/screenshots/progress.png" width="19%" alt="Progress chart with metric selector">
 </p>
 
-Exercises, routines, a workout in progress (with the rest countdown), history and progress charts. The data shown is sample data.
+Exercises, routines (your own and predefined ones you can add with a tap), a workout in progress (with the rest countdown), history and progress charts. The data shown is sample data.
 
 ## Stack
 
@@ -36,7 +36,7 @@ core/
   testing                shared fakes and test rules
 feature/
   exercises              exercise catalog filtered by muscle group and searchable by name, ignoring case and accents (implemented)
-  routines               create, edit, reorder and delete custom routines, with a rest time per exercise picked on a wheel (implemented)
+  routines               create, edit, reorder and delete custom routines, with a rest time per exercise picked on a wheel; predefined routines (full body, push, pull, legs, core) are templates that are copied into your own routines (implemented)
   session                log sets, reps and weight for a routine, built with MVI; ticking a set starts the exercise's rest countdown (adjustable, with a buzz when it ends); the workout in progress is saved as a draft in Room and resumes after the app is closed (implemented)
   history                finished workouts, most recent first, with duration and volume (implemented)
   progress               per-exercise Canvas line chart of max weight, estimated 1RM, volume or reps with date ranges, opened from Exercises or History (implemented)
@@ -54,7 +54,7 @@ Allowed dependencies: `feature` → `core:domain` + `core:ui`; `core:data` → `
 ## Roadmap
 
 - **Level 1 (MVP):** exercise library, custom routines, workout session logging (sets, reps, weight), history.
-- **Level 2:** predefined routines (rest timer, progress charts and search are done).
+- **Level 2:** predefined routines, rest timer, progress charts and exercise search (all done).
 - **Level 3:** remote catalog with sync, WorkManager, notifications, widget (Glance).
 - **Later:** Baseline Profiles and Macrobenchmark, screenshot tests, migrating `core:domain` and `core:data` to KMP.
 
