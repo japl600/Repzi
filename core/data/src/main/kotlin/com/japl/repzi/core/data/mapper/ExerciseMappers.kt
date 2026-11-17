@@ -10,4 +10,5 @@ internal fun ExerciseEntity.toDomain(names: ExerciseNames) = Exercise(
     name = names.nameOf(this),
     muscleGroup = MuscleGroup.valueOf(muscleGroup),
     isCustom = isCustom,
+    seedKey = seedKey,
 )
