@@ -24,6 +24,7 @@ import com.japl.repzi.feature.progress.progressScreen
 import com.japl.repzi.feature.routines.routinesScreens
 import com.japl.repzi.feature.session.navigateToSession
 import com.japl.repzi.feature.session.sessionScreen
+import com.japl.repzi.feature.settings.settingsScreen
 
 @Composable
 fun RepziNavHost() {
@@ -68,6 +69,7 @@ fun RepziNavHost() {
             sessionScreen(navController)
             historyScreen(onOpenProgress = { navController.navigateToProgress() })
             progressScreen(navController)
+            settingsScreen()
         }
     }
 }
