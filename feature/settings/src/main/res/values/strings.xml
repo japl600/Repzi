@@ -6,5 +6,8 @@
     <string name="settings_language">Language</string>
     <string name="settings_rest_vibration">Rest timer vibration</string>
     <string name="settings_source_code">Source code</string>
+    <string name="settings_licenses">Licenses</string>
+    <string name="licenses_title">Open-source licenses</string>
+    <string name="licenses_back">Back</string>
     <string name="settings_version">Version</string>
 </resources>

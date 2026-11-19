@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.repzi.android.application)
     alias(libs.plugins.repzi.android.compose)
     alias(libs.plugins.repzi.android.hilt)
+    alias(libs.plugins.aboutlibraries.android)
 }
 
 android {
@@ -46,4 +47,5 @@ dependencies {
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.aboutlibraries.compose.m3)
 }

@@ -41,6 +41,7 @@ private val LANGUAGE_SETTINGS_AVAILABLE = Build.VERSION.SDK_INT >= Build.VERSION
 
 @Composable
 fun SettingsRoute(
+    onOpenLicenses: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -59,6 +60,7 @@ fun SettingsRoute(
         onOpenSourceCode = {
             context.startActivitySafely(Intent(Intent.ACTION_VIEW, Uri.parse(SOURCE_CODE_URL)))
         },
+        onOpenLicenses = onOpenLicenses,
         modifier = modifier,
     )
 }
@@ -72,6 +74,7 @@ internal fun SettingsScreen(
     languageAvailable: Boolean,
     onOpenLanguage: () -> Unit,
     onOpenSourceCode: () -> Unit,
+    onOpenLicenses: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -90,6 +93,7 @@ internal fun SettingsScreen(
             )
             SectionHeader(stringResource(R.string.settings_section_help))
             NavigationRow(stringResource(R.string.settings_source_code), onClick = onOpenSourceCode)
+            NavigationRow(stringResource(R.string.settings_licenses), onClick = onOpenLicenses)
             ListItem(
                 headlineContent = { Text(stringResource(R.string.settings_version)) },
                 trailingContent = { Text(versionLabel, style = MaterialTheme.typography.bodyMedium) },

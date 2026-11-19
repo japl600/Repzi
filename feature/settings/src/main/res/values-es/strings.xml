@@ -6,5 +6,8 @@
     <string name="settings_language">Idioma</string>
     <string name="settings_rest_vibration">Vibración del descanso</string>
     <string name="settings_source_code">Código fuente</string>
+    <string name="settings_licenses">Licencias</string>
+    <string name="licenses_title">Licencias de código abierto</string>
+    <string name="licenses_back">Atrás</string>
     <string name="settings_version">Versión</string>
 </resources>

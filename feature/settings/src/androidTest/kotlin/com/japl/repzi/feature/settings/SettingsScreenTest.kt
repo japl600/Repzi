@@ -23,6 +23,7 @@ class SettingsScreenTest {
 
     private var languageOpened = 0
     private var sourceCodeOpened = 0
+    private var licensesOpened = 0
     private val vibrationChanges = mutableListOf<Boolean>()
 
     private fun setScreen(languageAvailable: Boolean = true, restVibration: Boolean = true) {
@@ -35,6 +36,7 @@ class SettingsScreenTest {
                     languageAvailable = languageAvailable,
                     onOpenLanguage = { languageOpened++ },
                     onOpenSourceCode = { sourceCodeOpened++ },
+                    onOpenLicenses = { licensesOpened++ },
                 )
             }
         }
@@ -72,6 +74,15 @@ class SettingsScreenTest {
         rule.onNodeWithText(string(R.string.settings_source_code)).performClick()
 
         assertEquals(1, sourceCodeOpened)
+    }
+
+    @Test
+    fun licensesRowOpensTheLicensesScreen() {
+        setScreen()
+
+        rule.onNodeWithText(string(R.string.settings_licenses)).performClick()
+
+        assertEquals(1, licensesOpened)
     }
 
     @Test

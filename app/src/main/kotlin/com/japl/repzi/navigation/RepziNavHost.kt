@@ -16,6 +16,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.japl.repzi.R
 import com.japl.repzi.feature.exercises.EXERCISES_ROUTE
 import com.japl.repzi.feature.exercises.exercisesScreen
 import com.japl.repzi.feature.history.historyScreen
@@ -24,7 +25,8 @@ import com.japl.repzi.feature.progress.progressScreen
 import com.japl.repzi.feature.routines.routinesScreens
 import com.japl.repzi.feature.session.navigateToSession
 import com.japl.repzi.feature.session.sessionScreen
-import com.japl.repzi.feature.settings.settingsScreen
+import com.japl.repzi.feature.settings.settingsScreens
+import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 
 @Composable
 fun RepziNavHost() {
@@ -69,7 +71,8 @@ fun RepziNavHost() {
             sessionScreen(navController)
             historyScreen(onOpenProgress = { navController.navigateToProgress() })
             progressScreen(navController)
-            settingsScreen()
+            // The list of libraries is generated into this module's resources by the AboutLibraries plugin.
+            settingsScreens(navController) { produceLibraries(R.raw.aboutlibraries).value }
         }
     }
 }
