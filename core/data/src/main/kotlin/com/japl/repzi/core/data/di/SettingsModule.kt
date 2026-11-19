@@ -2,7 +2,7 @@ package com.japl.repzi.core.data.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import com.japl.repzi.core.data.repository.createSettingsDataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import dagger.Module
@@ -19,5 +19,5 @@ internal object SettingsModule {
     @Provides
     @Singleton
     fun provideSettingsDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
-        PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("settings") }
+        createSettingsDataStore { context.preferencesDataStoreFile("settings") }
 }
