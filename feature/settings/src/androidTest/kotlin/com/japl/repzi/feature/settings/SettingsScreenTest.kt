@@ -4,6 +4,9 @@ import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -20,11 +23,14 @@ class SettingsScreenTest {
 
     private var languageOpened = 0
     private var sourceCodeOpened = 0
+    private val vibrationChanges = mutableListOf<Boolean>()
 
-    private fun setScreen(languageAvailable: Boolean = true) {
+    private fun setScreen(languageAvailable: Boolean = true, restVibration: Boolean = true) {
         rule.setContent {
             RepziTheme(dynamicColor = false) {
                 SettingsScreen(
+                    uiState = SettingsUiState(restVibration = restVibration),
+                    onRestVibrationChange = { vibrationChanges += it },
                     versionLabel = "0.1.0 (1)",
                     languageAvailable = languageAvailable,
                     onOpenLanguage = { languageOpened++ },
@@ -66,6 +72,27 @@ class SettingsScreenTest {
         rule.onNodeWithText(string(R.string.settings_source_code)).performClick()
 
         assertEquals(1, sourceCodeOpened)
+    }
+
+    @Test
+    fun vibrationSwitchReflectsTheState() {
+        setScreen(restVibration = false)
+        rule.onNode(isToggleable()).assertIsOff()
+    }
+
+    @Test
+    fun vibrationSwitchIsOnWhenEnabled() {
+        setScreen(restVibration = true)
+        rule.onNode(isToggleable()).assertIsOn()
+    }
+
+    @Test
+    fun tappingTheVibrationRowReportsTheNewValue() {
+        setScreen(restVibration = true)
+
+        rule.onNodeWithText(string(R.string.settings_rest_vibration)).performClick()
+
+        assertEquals(listOf(false), vibrationChanges)
     }
 
     @Test

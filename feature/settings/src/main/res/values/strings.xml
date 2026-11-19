@@ -4,6 +4,7 @@
     <string name="settings_section_general">General</string>
     <string name="settings_section_help">Help</string>
     <string name="settings_language">Language</string>
+    <string name="settings_rest_vibration">Rest timer vibration</string>
     <string name="settings_source_code">Source code</string>
     <string name="settings_version">Version</string>
 </resources>

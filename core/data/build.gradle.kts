@@ -11,6 +11,7 @@ dependencies {
     api(projects.core.domain)
     implementation(projects.core.database)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.datastore.preferences)
 
     testImplementation(projects.core.testing)
     testImplementation(libs.kotlin.test.junit)

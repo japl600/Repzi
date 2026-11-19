@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.japl.repzi.core.domain.usecase.DeleteWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
+import com.japl.repzi.core.domain.usecase.ObserveRestVibrationUseCase
 import com.japl.repzi.core.domain.usecase.SaveSessionResult
 import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,6 +41,7 @@ class SessionViewModel @Inject constructor(
     private val saveDraft: SaveWorkoutDraftUseCase,
     private val deleteDraft: DeleteWorkoutDraftUseCase,
     private val setExerciseRest: SetExerciseRestUseCase,
+    private val observeRestVibration: ObserveRestVibrationUseCase,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -196,7 +199,10 @@ class SessionViewModel @Inject constructor(
             val remaining = secondsUntil(endsAt)
             if (remaining <= 0) {
                 clearRest()
-                _effects.send(SessionEffect.RestFinished)
+                // Read now, not when the countdown started, so a change made while it was running applies.
+                if (observeRestVibration().first()) {
+                    _effects.send(SessionEffect.RestFinished)
+                }
                 return
             }
             _state.update { it.copy(rest = RestCountdown(restTotalSeconds, remaining)) }

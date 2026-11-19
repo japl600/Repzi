@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -19,14 +20,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 private const val SOURCE_CODE_URL = "https://github.com/japl600/Repzi"
 
@@ -34,10 +40,16 @@ private const val SOURCE_CODE_URL = "https://github.com/japl600/Repzi"
 private val LANGUAGE_SETTINGS_AVAILABLE = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
 @Composable
-fun SettingsRoute(modifier: Modifier = Modifier) {
+fun SettingsRoute(
+    modifier: Modifier = Modifier,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val context = LocalContext.current
     val versionLabel = remember(context) { context.versionLabel() }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
+        uiState = uiState,
+        onRestVibrationChange = viewModel::onRestVibrationChange,
         versionLabel = versionLabel,
         languageAvailable = LANGUAGE_SETTINGS_AVAILABLE,
         onOpenLanguage = {
@@ -54,6 +66,8 @@ fun SettingsRoute(modifier: Modifier = Modifier) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SettingsScreen(
+    uiState: SettingsUiState,
+    onRestVibrationChange: (Boolean) -> Unit,
     versionLabel: String,
     languageAvailable: Boolean,
     onOpenLanguage: () -> Unit,
@@ -65,10 +79,15 @@ internal fun SettingsScreen(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_title)) }) },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
+            SectionHeader(stringResource(R.string.settings_section_general))
             if (languageAvailable) {
-                SectionHeader(stringResource(R.string.settings_section_general))
                 NavigationRow(stringResource(R.string.settings_language), onClick = onOpenLanguage)
             }
+            SwitchRow(
+                title = stringResource(R.string.settings_rest_vibration),
+                checked = uiState.restVibration,
+                onCheckedChange = onRestVibrationChange,
+            )
             SectionHeader(stringResource(R.string.settings_section_help))
             NavigationRow(stringResource(R.string.settings_source_code), onClick = onOpenSourceCode)
             ListItem(
@@ -95,6 +114,16 @@ private fun NavigationRow(title: String, onClick: () -> Unit) {
         headlineContent = { Text(title) },
         trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
         modifier = Modifier.clickable(onClick = onClick),
+    )
+}
+
+@Composable
+private fun SwitchRow(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    ListItem(
+        headlineContent = { Text(title) },
+        // The whole row is the toggle, so the switch itself has no click handler of its own.
+        trailingContent = { Switch(checked = checked, onCheckedChange = null) },
+        modifier = Modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange),
     )
 }
 

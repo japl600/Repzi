@@ -11,12 +11,14 @@ import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.domain.usecase.DeleteWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
+import com.japl.repzi.core.domain.usecase.ObserveRestVibrationUseCase
 import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.SetExerciseRestUseCase
 import com.japl.repzi.core.testing.FakeDraftRepository
 import com.japl.repzi.core.testing.FakeRoutineRepository
 import com.japl.repzi.core.testing.FakeSessionRepository
+import com.japl.repzi.core.testing.FakeSettingsRepository
 import com.japl.repzi.core.testing.MainDispatcherRule
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -48,6 +50,7 @@ class SessionRestViewModelTest {
     )
     private val drafts = FakeDraftRepository()
     private val sessions = FakeSessionRepository()
+    private val settings = FakeSettingsRepository()
 
     private class FakeClock(var current: Instant) : Clock {
         override fun now() = current
@@ -65,6 +68,7 @@ class SessionRestViewModelTest {
         saveDraft = SaveWorkoutDraftUseCase(drafts),
         deleteDraft = DeleteWorkoutDraftUseCase(drafts),
         setExerciseRest = SetExerciseRestUseCase(routines),
+        observeRestVibration = ObserveRestVibrationUseCase(settings),
         clock = clock,
     ).also { viewModels += it }
 
@@ -151,6 +155,37 @@ class SessionRestViewModelTest {
             elapse(1)
 
             assertEquals(SessionEffect.RestFinished, awaitItem())
+        }
+        assertNull(viewModel.state.value.rest)
+    }
+
+    @Test
+    fun withVibrationOffTheEndOfTheRestDoesNotBuzz() = runRestTest {
+        settings.setRestVibration(false)
+        val viewModel = createViewModel()
+
+        viewModel.effects.test {
+            viewModel.tick(0)
+
+            elapse(60)
+
+            expectNoEvents()
+        }
+        assertNull(viewModel.state.value.rest)
+    }
+
+    @Test
+    fun switchingVibrationOffDuringTheCountdownSilencesIt() = runRestTest {
+        val viewModel = createViewModel()
+
+        viewModel.effects.test {
+            viewModel.tick(0)
+            elapse(30)
+            settings.setRestVibration(false)
+
+            elapse(30)
+
+            expectNoEvents()
         }
         assertNull(viewModel.state.value.rest)
     }
