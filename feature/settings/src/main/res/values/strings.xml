@@ -5,6 +5,17 @@
     <string name="settings_section_help">Help</string>
     <string name="settings_language">Language</string>
     <string name="settings_rest_vibration">Rest timer vibration</string>
+    <string name="settings_section_notifications">Notifications</string>
+    <string name="settings_rest_notification">Notify when a rest ends</string>
+    <string name="settings_inactivity_reminder">Remind me when I stop training</string>
+    <plurals name="settings_inactivity_days">
+        <item quantity="one">After %d day</item>
+        <item quantity="other">After %d days</item>
+    </plurals>
+    <string name="settings_inactivity_days_less">Fewer days</string>
+    <string name="settings_inactivity_days_more">More days</string>
+    <string name="settings_notifications_blocked">Notifications are blocked for Repzi. Tap to change it in system settings.</string>
+    <string name="settings_exact_timing_missing">The notification may arrive late. Tap to allow exact timing.</string>
     <string name="settings_source_code">Source code</string>
     <string name="settings_licenses">Licenses</string>
     <string name="settings_exercise_data">Exercise data (wger)</string>
