@@ -1,6 +1,7 @@
 package com.japl.repzi.feature.exercises
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,6 +27,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -41,17 +44,22 @@ import com.japl.repzi.core.ui.component.EmptyState
 @Composable
 fun ExercisesRoute(
     onOpenProgress: (exerciseId: Long) -> Unit,
+    onOpenDetail: (exerciseId: Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ExercisesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
     ExercisesScreen(
         uiState = uiState,
         searchQuery = searchQuery,
         onSearchQueryChange = viewModel::onSearchQueryChange,
         onGroupSelected = viewModel::onGroupSelected,
         onOpenProgress = onOpenProgress,
+        onOpenDetail = onOpenDetail,
+        // A phone without a browser cannot open links; the footer then simply does nothing.
+        onOpenUrl = { runCatching { uriHandler.openUri(it) } },
         modifier = modifier,
     )
 }
@@ -64,6 +72,8 @@ internal fun ExercisesScreen(
     onSearchQueryChange: (String) -> Unit,
     onGroupSelected: (MuscleGroup?) -> Unit,
     onOpenProgress: (exerciseId: Long) -> Unit,
+    onOpenDetail: (exerciseId: Long) -> Unit,
+    onOpenUrl: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -89,6 +99,7 @@ internal fun ExercisesScreen(
                     // key estable: evita recomponer y reubicar filas cuando cambia el filtro.
                     items(uiState.exercises, key = { it.id }) { exercise ->
                         ListItem(
+                            modifier = Modifier.clickable { onOpenDetail(exercise.id) },
                             headlineContent = { Text(exercise.name) },
                             supportingContent = {
                                 val group = stringResource(exercise.muscleGroup.labelRes())
@@ -109,6 +120,18 @@ internal fun ExercisesScreen(
                                 null
                             },
                         )
+                    }
+                    if (uiState.hasCatalogContent) {
+                        item(key = "attribution") {
+                            Text(
+                                text = stringResource(R.string.exercises_attribution),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .clickable { onOpenUrl(WGER_URL) }
+                                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -177,7 +200,7 @@ private fun MuscleGroupFilters(
 }
 
 @StringRes
-private fun MuscleGroup.labelRes(): Int = when (this) {
+internal fun MuscleGroup.labelRes(): Int = when (this) {
     MuscleGroup.CHEST -> R.string.muscle_group_chest
     MuscleGroup.BACK -> R.string.muscle_group_back
     MuscleGroup.LEGS -> R.string.muscle_group_legs
@@ -185,3 +208,5 @@ private fun MuscleGroup.labelRes(): Int = when (this) {
     MuscleGroup.ARMS -> R.string.muscle_group_arms
     MuscleGroup.CORE -> R.string.muscle_group_core
 }
+
+private const val WGER_URL = "https://wger.de"

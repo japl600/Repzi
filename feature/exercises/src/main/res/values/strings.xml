@@ -8,6 +8,14 @@
     <string name="exercises_search">Search exercises</string>
     <string name="exercises_search_clear">Clear search</string>
     <string name="exercises_no_results">No exercises match “%1$s”.</string>
+    <string name="exercises_attribution">Exercise data from wger.de, under CC-BY-SA, CC0 and other open licenses (see each exercise)</string>
+
+    <string name="exercise_detail_back">Back</string>
+    <string name="exercise_detail_author">Author: %1$s</string>
+    <string name="exercise_detail_license">License: %1$s</string>
+    <string name="exercise_detail_source">Source: wger.de</string>
+    <string name="exercise_detail_note">Shown as published on wger.de.</string>
+    <string name="exercise_detail_not_found">This exercise no longer exists.</string>
 
     <string name="muscle_group_chest">Chest</string>
     <string name="muscle_group_back">Back</string>

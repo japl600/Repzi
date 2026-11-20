@@ -1,5 +1,7 @@
 package com.japl.repzi.core.data.di
 
+import com.japl.repzi.core.data.AppLanguage
+import com.japl.repzi.core.data.ContextAppLanguage
 import com.japl.repzi.core.data.DefaultDispatcherProvider
 import com.japl.repzi.core.data.ExerciseNames
 import com.japl.repzi.core.data.ResourceExerciseNames
@@ -49,6 +51,9 @@ internal abstract class DataModule {
 
     @Binds
     abstract fun bindDispatcherProvider(impl: DefaultDispatcherProvider): DispatcherProvider
+
+    @Binds
+    abstract fun bindAppLanguage(impl: ContextAppLanguage): AppLanguage
 
     @Binds
     abstract fun bindCatalogStore(impl: RoomCatalogStore): CatalogStore

@@ -2,6 +2,7 @@ package com.japl.repzi.core.domain.usecase
 
 import app.cash.turbine.test
 import com.japl.repzi.core.domain.model.Exercise
+import com.japl.repzi.core.domain.model.ExerciseDetail
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.repository.ExerciseRepository
 import kotlin.test.Test
@@ -21,6 +22,8 @@ class ObserveExercisesUseCaseTest {
     private val repository = object : ExerciseRepository {
         override fun observeExercises(muscleGroup: MuscleGroup?): Flow<List<Exercise>> =
             flowOf(exercises.filter { muscleGroup == null || it.muscleGroup == muscleGroup })
+
+        override fun observeDetail(id: Long): Flow<ExerciseDetail?> = flowOf(null)
 
         override suspend fun addCustomExercise(name: String, muscleGroup: MuscleGroup) = Unit
     }

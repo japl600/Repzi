@@ -35,6 +35,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 private const val SOURCE_CODE_URL = "https://github.com/japl600/Repzi"
+private const val EXERCISE_DATA_URL = "https://wger.de"
 
 // The per-app language screen only exists on Android 13 and newer.
 private val LANGUAGE_SETTINGS_AVAILABLE = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
@@ -60,6 +61,9 @@ fun SettingsRoute(
         onOpenSourceCode = {
             context.startActivitySafely(Intent(Intent.ACTION_VIEW, Uri.parse(SOURCE_CODE_URL)))
         },
+        onOpenExerciseData = {
+            context.startActivitySafely(Intent(Intent.ACTION_VIEW, Uri.parse(EXERCISE_DATA_URL)))
+        },
         onOpenLicenses = onOpenLicenses,
         modifier = modifier,
     )
@@ -74,6 +78,7 @@ internal fun SettingsScreen(
     languageAvailable: Boolean,
     onOpenLanguage: () -> Unit,
     onOpenSourceCode: () -> Unit,
+    onOpenExerciseData: () -> Unit,
     onOpenLicenses: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -93,6 +98,7 @@ internal fun SettingsScreen(
             )
             SectionHeader(stringResource(R.string.settings_section_help))
             NavigationRow(stringResource(R.string.settings_source_code), onClick = onOpenSourceCode)
+            NavigationRow(stringResource(R.string.settings_exercise_data), onClick = onOpenExerciseData)
             NavigationRow(stringResource(R.string.settings_licenses), onClick = onOpenLicenses)
             ListItem(
                 headlineContent = { Text(stringResource(R.string.settings_version)) },

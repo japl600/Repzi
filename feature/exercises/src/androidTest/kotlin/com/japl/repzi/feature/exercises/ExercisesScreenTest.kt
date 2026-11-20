@@ -23,6 +23,8 @@ class ExercisesScreenTest {
 
     private val selections = mutableListOf<MuscleGroup?>()
     private val progressOpened = mutableListOf<Long>()
+    private val detailOpened = mutableListOf<Long>()
+    private val urlsOpened = mutableListOf<String>()
     private val queries = mutableListOf<String>()
 
     private fun setScreen(uiState: ExercisesUiState, searchQuery: String = "") {
@@ -34,6 +36,8 @@ class ExercisesScreenTest {
                     onSearchQueryChange = { queries += it },
                     onGroupSelected = { selections += it },
                     onOpenProgress = { progressOpened += it },
+                    onOpenDetail = { detailOpened += it },
+                    onOpenUrl = { urlsOpened += it },
                 )
             }
         }
@@ -146,5 +150,59 @@ class ExercisesScreenTest {
         setScreen(ExercisesUiState(isLoading = false), searchQuery = "  xyz ")
 
         rule.onNodeWithText(string(R.string.exercises_no_results, "xyz")).assertIsDisplayed()
+    }
+
+    @Test
+    fun footerIsShownWhenTheLibraryHasCatalogContent() {
+        setScreen(
+            ExercisesUiState(
+                isLoading = false,
+                exercises = listOf(Exercise(1, "Kettlebell swing", MuscleGroup.CORE, isCustom = false, fromCatalog = true)),
+                hasCatalogContent = true,
+            ),
+        )
+
+        rule.onNodeWithText(string(R.string.exercises_attribution)).assertIsDisplayed()
+    }
+
+    @Test
+    fun footerIsHiddenOtherwise() {
+        setScreen(
+            ExercisesUiState(
+                isLoading = false,
+                exercises = listOf(Exercise(1, "Sentadilla", MuscleGroup.LEGS, isCustom = false)),
+            ),
+        )
+
+        rule.onNodeWithText(string(R.string.exercises_attribution)).assertDoesNotExist()
+    }
+
+    @Test
+    fun tappingTheFooterOpensWger() {
+        setScreen(
+            ExercisesUiState(
+                isLoading = false,
+                exercises = listOf(Exercise(1, "Kettlebell swing", MuscleGroup.CORE, isCustom = false, fromCatalog = true)),
+                hasCatalogContent = true,
+            ),
+        )
+
+        rule.onNodeWithText(string(R.string.exercises_attribution)).performClick()
+
+        assertEquals(listOf("https://wger.de"), urlsOpened)
+    }
+
+    @Test
+    fun tappingARowOpensItsDetail() {
+        setScreen(
+            ExercisesUiState(
+                isLoading = false,
+                exercises = listOf(Exercise(5, "Sentadilla", MuscleGroup.LEGS, isCustom = false)),
+            ),
+        )
+
+        rule.onNodeWithText("Sentadilla").performClick()
+
+        assertEquals(listOf(5L), detailOpened)
     }
 }

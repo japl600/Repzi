@@ -1,6 +1,7 @@
 package com.japl.repzi.core.domain.usecase
 
 import com.japl.repzi.core.domain.model.Exercise
+import com.japl.repzi.core.domain.model.ExerciseDetail
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.PredefinedRoutine
 import com.japl.repzi.core.domain.model.Routine
@@ -26,6 +27,7 @@ class AddPredefinedRoutineUseCaseTest {
 
     private class FakeExercises(private val list: List<Exercise>) : ExerciseRepository {
         override fun observeExercises(muscleGroup: MuscleGroup?): Flow<List<Exercise>> = flowOf(list)
+        override fun observeDetail(id: Long): Flow<ExerciseDetail?> = flowOf(null)
         override suspend fun addCustomExercise(name: String, muscleGroup: MuscleGroup) = Unit
     }
 

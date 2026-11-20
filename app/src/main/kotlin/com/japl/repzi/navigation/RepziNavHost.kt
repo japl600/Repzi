@@ -66,7 +66,7 @@ fun RepziNavHost() {
             // consumeWindowInsets stops the inner Scaffolds from adding the bottom inset a second time.
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
-            exercisesScreen(onOpenProgress = navController::navigateToProgress)
+            exercisesScreen(navController, onOpenProgress = navController::navigateToProgress)
             routinesScreens(navController, onStartRoutine = navController::navigateToSession)
             sessionScreen(navController)
             historyScreen(onOpenProgress = { navController.navigateToProgress() })

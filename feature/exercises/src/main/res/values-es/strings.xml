@@ -8,6 +8,14 @@
     <string name="exercises_search">Buscar ejercicios</string>
     <string name="exercises_search_clear">Borrar búsqueda</string>
     <string name="exercises_no_results">Ningún ejercicio coincide con «%1$s».</string>
+    <string name="exercises_attribution">Datos de ejercicios de wger.de, con licencias CC-BY-SA, CC0 y otras abiertas (consulta cada ejercicio)</string>
+
+    <string name="exercise_detail_back">Volver</string>
+    <string name="exercise_detail_author">Autor: %1$s</string>
+    <string name="exercise_detail_license">Licencia: %1$s</string>
+    <string name="exercise_detail_source">Fuente: wger.de</string>
+    <string name="exercise_detail_note">Se muestra tal como se publicó en wger.de.</string>
+    <string name="exercise_detail_not_found">Este ejercicio ya no existe.</string>
 
     <string name="muscle_group_chest">Pecho</string>
     <string name="muscle_group_back">Espalda</string>
