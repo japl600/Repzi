@@ -8,6 +8,7 @@ import com.japl.repzi.core.database.dao.WorkoutDraftDao
 import com.japl.repzi.core.database.dao.WorkoutSessionDao
 import com.japl.repzi.core.database.model.DraftSetEntity
 import com.japl.repzi.core.database.model.ExerciseEntity
+import com.japl.repzi.core.database.model.ExerciseTranslationEntity
 import com.japl.repzi.core.database.model.LoggedSetEntity
 import com.japl.repzi.core.database.model.RoutineEntity
 import com.japl.repzi.core.database.model.RoutineExerciseEntity
@@ -17,6 +18,7 @@ import com.japl.repzi.core.database.model.WorkoutSessionEntity
 @Database(
     entities = [
         ExerciseEntity::class,
+        ExerciseTranslationEntity::class,
         RoutineEntity::class,
         RoutineExerciseEntity::class,
         WorkoutSessionEntity::class,
@@ -24,7 +26,7 @@ import com.japl.repzi.core.database.model.WorkoutSessionEntity
         WorkoutDraftEntity::class,
         DraftSetEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 abstract class RepziDatabase : RoomDatabase() {

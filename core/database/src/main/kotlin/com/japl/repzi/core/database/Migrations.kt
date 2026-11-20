@@ -95,4 +95,26 @@ internal val MIGRATION_5_6 = object : Migration(5, 6) {
     }
 }
 
-internal val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+/**
+ * Prepares the exercise catalog: exercises.remote_id (the wger id, unique), exercises.source and
+ * exercises.remote_updated_at, plus the exercise_translations table. Every existing exercise stays local and keeps its
+ * id, so routines, drafts and history are untouched. The built-ins get their wger id on the first sync.
+ */
+internal val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `exercises` ADD COLUMN `remote_id` INTEGER")
+        db.execSQL("ALTER TABLE `exercises` ADD COLUMN `source` TEXT NOT NULL DEFAULT 'local'")
+        db.execSQL("ALTER TABLE `exercises` ADD COLUMN `remote_updated_at` TEXT")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_exercises_remote_id` ON `exercises` (`remote_id`)")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `exercise_translations` (" +
+                "`exercise_id` INTEGER NOT NULL, `language` TEXT NOT NULL, `name` TEXT NOT NULL, " +
+                "`description` TEXT NOT NULL, `author` TEXT, `license_name` TEXT, `license_url` TEXT, " +
+                "PRIMARY KEY(`exercise_id`, `language`), " +
+                "FOREIGN KEY(`exercise_id`) REFERENCES `exercises`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        )
+    }
+}
+
+internal val ALL_MIGRATIONS =
+    arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)

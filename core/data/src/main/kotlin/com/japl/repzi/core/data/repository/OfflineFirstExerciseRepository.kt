@@ -30,7 +30,7 @@ internal class OfflineFirstExerciseRepository @Inject constructor(
         // The shown name depends on the language, so the order is decided here and not by the query.
         return entities.map { list ->
             val collator = Collator.getInstance()
-            list.map { it.toDomain(names) }.sortedWith(compareBy(collator) { it.name })
+            list.map { it.exercise.toDomain(names) }.sortedWith(compareBy(collator) { it.name })
         }
     }
 

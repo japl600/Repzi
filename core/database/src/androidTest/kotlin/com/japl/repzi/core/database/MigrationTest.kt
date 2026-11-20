@@ -146,6 +146,45 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate6To7KeepsExercisesAndRoutinesAndAddsCatalogColumns() {
+        helper.createDatabase(DB_NAME, 6).apply {
+            execSQL("INSERT INTO exercises (name, muscle_group, is_custom, seed_key) VALUES ('Squat', 'LEGS', 0, 'squat')")
+            execSQL("INSERT INTO exercises (name, muscle_group, is_custom) VALUES ('Mine', 'ARMS', 1)")
+            execSQL("INSERT INTO routines (name) VALUES ('Legs')")
+            execSQL("INSERT INTO routine_exercises VALUES (1, 0, 1, NULL)")
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 7, true, MIGRATION_6_7)
+
+        db.query("SELECT name, source, remote_id, remote_updated_at, seed_key FROM exercises ORDER BY id").use {
+            assertEquals(2, it.count)
+            it.moveToFirst()
+            assertEquals("Squat", it.getString(0))
+            assertEquals("local", it.getString(1))
+            assertEquals(true, it.isNull(2))
+            assertEquals(true, it.isNull(3))
+            assertEquals("squat", it.getString(4))
+            it.moveToNext()
+            assertEquals("Mine", it.getString(0))
+            assertEquals("local", it.getString(1))
+        }
+        // The routine still points at the same exercise.
+        db.query("SELECT exercise_id FROM routine_exercises").use {
+            it.moveToFirst()
+            assertEquals(1, it.getInt(0))
+        }
+        // The new table accepts rows and follows the exercise when it is deleted.
+        db.execSQL("PRAGMA foreign_keys = ON")
+        db.execSQL("INSERT INTO exercise_translations VALUES (2, 'en', 'Mine', '', NULL, NULL, NULL)")
+        db.execSQL("DELETE FROM exercises WHERE id = 2")
+        db.query("SELECT COUNT(*) FROM exercise_translations").use {
+            it.moveToFirst()
+            assertEquals(0, it.getInt(0))
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test"
     }
