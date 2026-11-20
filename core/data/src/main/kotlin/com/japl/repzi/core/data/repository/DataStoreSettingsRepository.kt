@@ -5,6 +5,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
+import com.japl.repzi.core.domain.repository.DEFAULT_INACTIVITY_DAYS
+import com.japl.repzi.core.domain.repository.INACTIVITY_DAYS_RANGE
 import com.japl.repzi.core.domain.repository.SettingsRepository
 import java.io.IOException
 import javax.inject.Inject
@@ -17,15 +20,39 @@ internal class DataStoreSettingsRepository @Inject constructor(
 ) : SettingsRepository {
 
     // An unreadable file is treated as "no preferences yet", so the defaults apply instead of crashing the screens.
-    override val restVibration: Flow<Boolean> = dataStore.data
+    private val preferences: Flow<Preferences> = dataStore.data
         .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
-        .map { preferences -> preferences[REST_VIBRATION] ?: true }
+
+    override val restVibration: Flow<Boolean> = preferences.map { it[REST_VIBRATION] ?: true }
+
+    override val restNotification: Flow<Boolean> = preferences.map { it[REST_NOTIFICATION] ?: false }
+
+    override val inactivityReminder: Flow<Boolean> = preferences.map { it[INACTIVITY_REMINDER] ?: false }
+
+    override val inactivityDays: Flow<Int> = preferences.map {
+        (it[INACTIVITY_DAYS] ?: DEFAULT_INACTIVITY_DAYS).coerceIn(INACTIVITY_DAYS_RANGE)
+    }
 
     override suspend fun setRestVibration(enabled: Boolean) {
-        dataStore.edit { preferences -> preferences[REST_VIBRATION] = enabled }
+        dataStore.edit { it[REST_VIBRATION] = enabled }
+    }
+
+    override suspend fun setRestNotification(enabled: Boolean) {
+        dataStore.edit { it[REST_NOTIFICATION] = enabled }
+    }
+
+    override suspend fun setInactivityReminder(enabled: Boolean) {
+        dataStore.edit { it[INACTIVITY_REMINDER] = enabled }
+    }
+
+    override suspend fun setInactivityDays(days: Int) {
+        dataStore.edit { it[INACTIVITY_DAYS] = days.coerceIn(INACTIVITY_DAYS_RANGE) }
     }
 
     private companion object {
         val REST_VIBRATION = booleanPreferencesKey("rest_vibration")
+        val REST_NOTIFICATION = booleanPreferencesKey("rest_notification")
+        val INACTIVITY_REMINDER = booleanPreferencesKey("inactivity_reminder")
+        val INACTIVITY_DAYS = intPreferencesKey("inactivity_days")
     }
 }

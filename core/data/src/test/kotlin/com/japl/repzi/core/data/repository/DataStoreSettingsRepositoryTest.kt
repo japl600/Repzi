@@ -2,6 +2,7 @@ package com.japl.repzi.core.data.repository
 
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
@@ -70,6 +71,77 @@ class DataStoreSettingsRepositoryTest {
         repository.setRestVibration(false)
 
         assertFalse(repository.restVibration.first())
+    }
+
+    @Test
+    fun restNotificationIsOffByDefault() = runTest {
+        assertFalse(repository(settingsFile(), backgroundScope).restNotification.first())
+    }
+
+    @Test
+    fun inactivityReminderIsOffByDefault() = runTest {
+        assertFalse(repository(settingsFile(), backgroundScope).inactivityReminder.first())
+    }
+
+    @Test
+    fun inactivityDaysIsThreeByDefault() = runTest {
+        assertEquals(3, repository(settingsFile(), backgroundScope).inactivityDays.first())
+    }
+
+    // One write per test: DataStore replaces its file by renaming over it, which fails on Windows from the second write.
+    @Test
+    fun restNotificationIsPersisted() = runTest {
+        val repository = repository(settingsFile(), backgroundScope)
+
+        repository.setRestNotification(true)
+
+        assertTrue(repository.restNotification.first())
+    }
+
+    @Test
+    fun inactivityReminderIsPersisted() = runTest {
+        val repository = repository(settingsFile(), backgroundScope)
+
+        repository.setInactivityReminder(true)
+
+        assertTrue(repository.inactivityReminder.first())
+    }
+
+    @Test
+    fun inactivityDaysArePersisted() = runTest {
+        val repository = repository(settingsFile(), backgroundScope)
+
+        repository.setInactivityDays(7)
+
+        assertEquals(7, repository.inactivityDays.first())
+    }
+
+    @Test
+    fun inactivityDaysBelowTheRangeAreKeptAtOne() = runTest {
+        val repository = repository(settingsFile(), backgroundScope)
+
+        repository.setInactivityDays(0)
+
+        assertEquals(1, repository.inactivityDays.first())
+    }
+
+    @Test
+    fun inactivityDaysAboveTheRangeAreKeptAtFourteen() = runTest {
+        val repository = repository(settingsFile(), backgroundScope)
+
+        repository.setInactivityDays(99)
+
+        assertEquals(14, repository.inactivityDays.first())
+    }
+
+    @Test
+    fun corruptFileFallsBackToTheNewDefaults() = runTest {
+        val file = settingsFile().apply { writeBytes(byteArrayOf(1, 2, 3, 4, 5, -1, -2)) }
+        val repository = repository(file, backgroundScope)
+
+        assertFalse(repository.restNotification.first())
+        assertFalse(repository.inactivityReminder.first())
+        assertEquals(3, repository.inactivityDays.first())
     }
 
     private fun TestScope.firstScope(job: Job) = CoroutineScope(StandardTestDispatcher(testScheduler) + job)

@@ -5,6 +5,7 @@ import com.japl.repzi.core.data.ContextAppLanguage
 import com.japl.repzi.core.data.DefaultDispatcherProvider
 import com.japl.repzi.core.data.ExerciseNames
 import com.japl.repzi.core.data.ResourceExerciseNames
+import com.japl.repzi.core.data.repository.DataStoreInactivityNoticeLog
 import com.japl.repzi.core.data.repository.DataStoreSettingsRepository
 import com.japl.repzi.core.data.repository.OfflineFirstDraftRepository
 import com.japl.repzi.core.data.repository.OfflineFirstExerciseRepository
@@ -21,6 +22,7 @@ import com.japl.repzi.core.domain.repository.DraftRepository
 import com.japl.repzi.core.domain.repository.ExerciseRepository
 import com.japl.repzi.core.domain.repository.RoutineRepository
 import com.japl.repzi.core.domain.repository.SessionRepository
+import com.japl.repzi.core.domain.repository.InactivityNoticeLog
 import com.japl.repzi.core.domain.repository.SettingsRepository
 import dagger.Binds
 import dagger.Module
@@ -45,6 +47,9 @@ internal abstract class DataModule {
 
     @Binds
     abstract fun bindSettingsRepository(impl: DataStoreSettingsRepository): SettingsRepository
+
+    @Binds
+    abstract fun bindInactivityNoticeLog(impl: DataStoreInactivityNoticeLog): InactivityNoticeLog
 
     @Binds
     abstract fun bindExerciseNames(impl: ResourceExerciseNames): ExerciseNames
