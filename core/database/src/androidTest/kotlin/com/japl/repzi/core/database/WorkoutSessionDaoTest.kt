@@ -65,7 +65,7 @@ class WorkoutSessionDaoTest {
             listOf(Triple("Banca", 8, 60.0), Triple("Banca", 6, 62.5), Triple("Sentadilla", 5, 100.0)),
             saved.sets
                 .sortedWith(compareBy({ it.set.exercisePosition }, { it.set.setIndex }))
-                .map { Triple(it.exercise.name, it.set.reps, it.set.weightKg) },
+                .map { Triple(it.exercise.exercise.name, it.set.reps, it.set.weightKg) },
         )
     }
 

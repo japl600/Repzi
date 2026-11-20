@@ -10,6 +10,8 @@ data class Exercise(
     val muscleGroup: MuscleGroup,
     val isCustom: Boolean,
     val seedKey: String? = null,
+    /** True for exercises that come from the wger catalog (they have a detail screen with author and license). */
+    val fromCatalog: Boolean = false,
 )
 
 enum class MuscleGroup {

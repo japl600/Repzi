@@ -1,8 +1,8 @@
 package com.japl.repzi.core.data
 
 import android.content.Context
-import androidx.annotation.StringRes
-import com.japl.repzi.core.database.model.ExerciseEntity
+import com.japl.repzi.core.database.model.ExerciseWithNames
+import com.japl.repzi.core.database.model.TranslatedName
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -11,7 +11,7 @@ import javax.inject.Inject
  * of Android and the domain layer receive ready-to-display names.
  */
 internal fun interface ExerciseNames {
-    fun nameOf(entity: ExerciseEntity): String
+    fun nameOf(exercise: ExerciseWithNames): String
 }
 
 /** One string resource per key in [com.japl.repzi.core.database.SeedExercises]. */
@@ -33,16 +33,32 @@ internal val SEED_NAME_RESOURCES: Map<String, Int> = mapOf(
     "crunch" to R.string.exercise_crunch,
 )
 
+/** The translation for [language], else the English one, else [fallback] (the name stored with the exercise). */
+internal fun pickName(names: List<TranslatedName>, language: String, fallback: String): String =
+    names.firstOrNull { it.language == language }?.name
+        ?: names.firstOrNull { it.language == "en" }?.name
+        ?: fallback
+
 /**
- * Built-in exercises are translated from string resources in the language the app is using now. Custom
- * exercises, and keys this build does not know, show the stored name.
+ * In order: a built-in's string resource ([seedName] looks it up by seed key); the catalog translation for the
+ * app language, then English; the stored name (what the user typed for a custom exercise, or the English fallback).
  */
-internal class ResourceExerciseNames @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+internal class TranslatedExerciseNames(
+    private val seedName: (String) -> String?,
+    private val language: () -> String,
 ) : ExerciseNames {
 
-    override fun nameOf(entity: ExerciseEntity): String {
-        @StringRes val resource = entity.seedKey?.let(SEED_NAME_RESOURCES::get)
-        return if (resource != null) context.getString(resource) else entity.name
+    override fun nameOf(exercise: ExerciseWithNames): String {
+        val entity = exercise.exercise
+        entity.seedKey?.let(seedName)?.let { return it }
+        return pickName(exercise.names, language(), entity.name)
     }
 }
+
+/** Android flavour: seed names from string resources, language from the app's current locale. */
+internal class ResourceExerciseNames @Inject constructor(
+    @param:ApplicationContext private val context: Context,
+) : ExerciseNames by TranslatedExerciseNames(
+    seedName = { key -> SEED_NAME_RESOURCES[key]?.let(context::getString) },
+    language = { context.resources.configuration.locales[0].language },
+)

@@ -16,6 +16,6 @@ data class WorkoutSessionWithSets(
 
 data class LoggedSetWithExercise(
     @Embedded val set: LoggedSetEntity,
-    @Relation(parentColumn = "exercise_id", entityColumn = "id")
-    val exercise: ExerciseEntity,
+    @Relation(parentColumn = "exercise_id", entityColumn = "id", entity = ExerciseEntity::class)
+    val exercise: ExerciseWithNames,
 )

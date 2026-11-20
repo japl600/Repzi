@@ -14,6 +14,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -117,5 +118,44 @@ class ExercisesViewModelTest {
 
         assertEquals(emptyList(), viewModel.uiState.value.exercises)
         assertFalse(viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun hasCatalogContentIsFalseWhenNoExerciseComesFromTheCatalog() = runTest {
+        val state = createViewModel().uiState.first { !it.isLoading }
+
+        assertFalse(state.hasCatalogContent)
+    }
+
+    @Test
+    fun hasCatalogContentIsTrueWhenAnyExerciseComesFromTheCatalog() = runTest {
+        repository.setExercises(
+            listOf(
+                Exercise(1, "Sentadilla", MuscleGroup.LEGS, isCustom = false),
+                Exercise(2, "Kettlebell swing", MuscleGroup.CORE, isCustom = false, fromCatalog = true),
+            ),
+        )
+
+        val state = createViewModel().uiState.first { !it.isLoading }
+
+        assertTrue(state.hasCatalogContent)
+    }
+
+    @Test
+    fun hasCatalogContentIgnoresTheSearchText() = runTest {
+        repository.setExercises(
+            listOf(
+                Exercise(1, "Sentadilla", MuscleGroup.LEGS, isCustom = false),
+                Exercise(2, "Kettlebell swing", MuscleGroup.CORE, isCustom = false, fromCatalog = true),
+            ),
+        )
+        val viewModel = createViewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        // The search only shows the local squat, but the library still holds catalog content.
+        viewModel.onSearchQueryChange("sentadilla")
+
+        assertEquals(listOf("Sentadilla"), viewModel.uiState.value.exercises.map { it.name })
+        assertTrue(viewModel.uiState.value.hasCatalogContent)
     }
 }

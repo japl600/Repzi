@@ -44,6 +44,8 @@ class ExercisesViewModel @Inject constructor(
                 ExercisesUiState(
                     isLoading = false,
                     exercises = exercises.filter { it.matchesSearch(query) },
+                    // Decided before the search text is applied: the library has catalog content even if a search hides it.
+                    hasCatalogContent = exercises.any { it.fromCatalog },
                     selectedGroup = group,
                     exercisesWithProgress = withProgress,
                 )

@@ -16,6 +16,6 @@ data class RoutineWithExercises(
 
 data class RoutineExerciseWithExercise(
     @Embedded val item: RoutineExerciseEntity,
-    @Relation(parentColumn = "exercise_id", entityColumn = "id")
-    val exercise: ExerciseEntity,
+    @Relation(parentColumn = "exercise_id", entityColumn = "id", entity = ExerciseEntity::class)
+    val exercise: ExerciseWithNames,
 )

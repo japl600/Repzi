@@ -8,7 +8,10 @@ import com.japl.repzi.core.database.dao.ExerciseDao
 import com.japl.repzi.core.database.dao.RoutineDao
 import com.japl.repzi.core.database.dao.RoutineItem
 import com.japl.repzi.core.database.model.ExerciseEntity
+import com.japl.repzi.core.database.model.RemoteExerciseWrite
 import com.japl.repzi.core.database.model.RoutineEntity
+import com.japl.repzi.core.database.model.TranslatedName
+import com.japl.repzi.core.database.model.TranslationWrite
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -42,7 +45,31 @@ class RoutineDaoTest {
     private fun items(vararg exerciseIds: Long) = exerciseIds.map { RoutineItem(it) }
 
     private suspend fun exerciseNames(routineId: Long): List<String> =
-        routineDao.getById(routineId)!!.items.sortedBy { it.item.position }.map { it.exercise.name }
+        routineDao.getById(routineId)!!.items.sortedBy { it.item.position }.map { it.exercise.exercise.name }
+
+    @Test
+    fun aRoutineCarriesTheTranslatedNamesOfItsCatalogExercises() = runTest {
+        exerciseDao.applyRemote(
+            listOf(
+                RemoteExerciseWrite(
+                    remoteId = 100,
+                    name = "Kettlebell swing",
+                    muscleGroup = "CORE",
+                    updatedAt = "t1",
+                    translations = listOf(
+                        TranslationWrite("en", "Kettlebell swing", "<p>d</p>", null, null, null),
+                        TranslationWrite("es", "Swing con kettlebell", "<p>d</p>", null, null, null),
+                    ),
+                ),
+            ),
+        )
+        val exerciseId = exerciseDao.observeAll().first().single().exercise.id
+
+        val id = routineDao.save(RoutineEntity(name = "Core"), items(exerciseId))
+
+        val loaded = routineDao.getById(id)!!.items.single().exercise
+        assertEquals(setOf(TranslatedName("en", "Kettlebell swing"), TranslatedName("es", "Swing con kettlebell")), loaded.names.toSet())
+    }
 
     @Test
     fun savedRoutineKeepsTheExerciseOrder() = runTest {
