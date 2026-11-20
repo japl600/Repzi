@@ -85,4 +85,4 @@ Names of the use cases and classes beyond the ones above, the exact copy of the 
 - Tapping the notification only brings the app back; it does not deep-link into the routine.
 - New module `:core:notifications` instead of putting this in `:core:data`.
 - The inactivity worker is always scheduled and the setting is read when it runs.
-- A buzz may still arrive when the user comes back to the app after the rest ended in the background: that is the existing buffered effect and is left unchanged.
+- The existing in-app buzz is left unchanged. `SessionScreen` collects `RestFinished` with a `LaunchedEffect` that is not tied to the lifecycle, so with the app minimized (screen still composed) it is consumed when the rest ends and tries to buzz while the notification arrives. That may feel like two vibrations, or one if Android ignores background vibration. It is not verified; check it in the manual test and, if it is noticeable, skip the in-app buzz when the app is not visible and the notification is on.
