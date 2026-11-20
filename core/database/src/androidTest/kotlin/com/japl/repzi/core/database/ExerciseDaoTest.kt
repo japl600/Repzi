@@ -121,6 +121,29 @@ class ExerciseDaoTest {
     }
 
     @Test
+    fun applyRemoteUpdatesNameAndGroupOfAPlainCatalogRowButNotOfALinkedBuiltIn() = runTest {
+        dao.insert(ExerciseEntity(name = "Bench press", muscleGroup = "CHEST", isCustom = false, seedKey = "bench_press"))
+        dao.linkBuiltIns()
+        dao.applyRemote(listOf(write(73), write(100, name = "Old name", group = "ARMS")))
+
+        // wger renames exercise 100 and moves it to another category; the linked built-in is renamed too.
+        dao.applyRemote(
+            listOf(
+                write(73, name = "Bench Press (wger)", group = "ARMS", updatedAt = "t2"),
+                write(100, name = "New name", group = "SHOULDERS", updatedAt = "t2"),
+            ),
+        )
+
+        val all = dao.observeAll().first()
+        val plain = all.first { it.exercise.remoteId == 100L }.exercise
+        assertEquals("New name", plain.name)
+        assertEquals("SHOULDERS", plain.muscleGroup)
+        val builtIn = all.first { it.exercise.seedKey == "bench_press" }.exercise
+        assertEquals("Bench press", builtIn.name)
+        assertEquals("CHEST", builtIn.muscleGroup)
+    }
+
+    @Test
     fun applyRemoteDoesNotTouchCustomExercises() = runTest {
         dao.insert(ExerciseEntity(name = "Mine", muscleGroup = "ARMS", isCustom = true))
 

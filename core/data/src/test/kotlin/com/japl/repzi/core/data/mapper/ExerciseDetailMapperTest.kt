@@ -49,6 +49,17 @@ class ExerciseDetailMapperTest {
     }
 
     @Test
+    fun usesAnyTranslationWhenNeitherTheAppLanguageNorEnglishExists() {
+        // A Spanish-only exercise in an English app: its attribution must not be lost.
+        val detail = catalogExercise.toDetail("Swing", listOf(translation("es")), language = "en")
+
+        assertEquals("<p>es</p>", detail.description)
+        assertEquals("author-es", detail.author)
+        assertEquals("CC-BY-SA 4 (es)", detail.licenseName)
+        assertEquals("https://license/es", detail.licenseUrl)
+    }
+
+    @Test
     fun mapsTheExerciseFieldsAndTheSourceLink() {
         val detail = catalogExercise.toDetail("Swing", listOf(translation("en")), language = "en")
 

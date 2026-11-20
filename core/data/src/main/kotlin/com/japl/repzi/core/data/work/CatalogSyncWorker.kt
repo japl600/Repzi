@@ -1,6 +1,7 @@
 package com.japl.repzi.core.data.work
 
 import android.content.Context
+import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -24,6 +25,12 @@ internal class CatalogSyncWorker @AssistedInject constructor(
         sync()
         Result.success()
     } catch (e: WgerException) {
+        // Nothing else reports a failed background run, so leave a trace for whoever debugs a catalog that stopped updating.
+        Log.w(TAG, "Catalog sync failed (retryable=${e.retryable})", e)
         if (e.retryable) Result.retry() else Result.failure()
+    }
+
+    private companion object {
+        const val TAG = "CatalogSyncWorker"
     }
 }

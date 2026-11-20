@@ -19,7 +19,8 @@ internal fun ExerciseWithNames.toDomain(names: ExerciseNames) = Exercise(
 )
 
 /**
- * The detail of an exercise. The description, author and license come from the translation in [language], else English;
+ * The detail of an exercise. The description, author and license come from the translation in [language], else English,
+ * else any other;
  * an exercise with no translation (one the user created) has none of them. Blank text counts as missing.
  */
 internal fun ExerciseEntity.toDetail(
@@ -27,7 +28,10 @@ internal fun ExerciseEntity.toDetail(
     translations: List<ExerciseTranslationEntity>,
     language: String,
 ): ExerciseDetail {
-    val shown = translations.firstOrNull { it.language == language } ?: translations.firstOrNull { it.language == "en" }
+    // Last resort: any translation, so an exercise that exists in only one other language keeps its attribution.
+    val shown = translations.firstOrNull { it.language == language }
+        ?: translations.firstOrNull { it.language == "en" }
+        ?: translations.firstOrNull()
     return ExerciseDetail(
         id = id,
         name = name,

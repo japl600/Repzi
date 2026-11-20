@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.LinkInteractionListener
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.fromHtml
@@ -95,8 +97,10 @@ private fun DetailContent(detail: ExerciseDetail, onOpenUrl: (String) -> Unit, m
         SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline),
     )
     // wger descriptions are HTML from contributors. fromHtml keeps text, emphasis and links only; nothing is executed.
-    val description = remember(detail.description, linkStyles) {
-        detail.description?.let { AnnotatedString.fromHtml(it.trim(), linkStyles = linkStyles) }
+    val description = remember(detail.description, linkStyles, onOpenUrl) {
+        detail.description?.let {
+            AnnotatedString.fromHtml(it.trim(), linkStyles = linkStyles, linkInteractionListener = webLinkListener(onOpenUrl))
+        }
     }
     val hasAttribution = detail.author != null || detail.licenseName != null || detail.sourceUrl != null
 
@@ -128,6 +132,15 @@ private fun DetailContent(detail: ExerciseDetail, onOpenUrl: (String) -> Unit, m
             }
         }
     }
+}
+
+/**
+ * Opens only web links found in a description. The text is written by contributors, so a link with another scheme
+ * (`tel:`, `market:`, an app deep link) is ignored instead of launching another app.
+ */
+internal fun webLinkListener(onOpenUrl: (String) -> Unit) = LinkInteractionListener { link ->
+    val url = (link as? LinkAnnotation.Url)?.url ?: return@LinkInteractionListener
+    if (url.startsWith("https://", ignoreCase = true) || url.startsWith("http://", ignoreCase = true)) onOpenUrl(url)
 }
 
 @Composable

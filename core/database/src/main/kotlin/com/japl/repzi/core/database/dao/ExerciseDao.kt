@@ -46,8 +46,8 @@ abstract class ExerciseDao {
 
     /**
      * Stores a page of the wger catalog. A row is found by its wger id: a new one is inserted as a catalog exercise; an
-     * existing one (a linked built-in or an earlier download) only gets its timestamp and translations replaced, so its
-     * name, group and local id never change. Exercises the user created have no wger id and are never touched.
+     * existing one gets its timestamp and translations replaced, and, unless it is a built-in, its name and group follow
+     * wger. The local id never changes, and a built-in keeps its own name and group. Exercises the user created have no wger id and are never touched.
      */
     @Transaction
     open suspend fun applyRemote(writes: List<RemoteExerciseWrite>) {
@@ -66,6 +66,7 @@ abstract class ExerciseDao {
                 )
             } else {
                 markSynced(write.remoteId, write.updatedAt)
+                updateCatalogFields(write.remoteId, write.name, write.muscleGroup)
                 existing
             }
             deleteTranslations(id)
@@ -79,6 +80,10 @@ abstract class ExerciseDao {
 
     @Query("UPDATE OR IGNORE exercises SET remote_id = :remoteId, source = 'wger' WHERE seed_key = :seedKey AND remote_id IS NULL")
     protected abstract suspend fun linkSeed(seedKey: String, remoteId: Long): Int
+
+    // Built-ins (seed_key set) keep their own name and group; only plain catalog rows follow wger.
+    @Query("UPDATE exercises SET name = :name, muscle_group = :muscleGroup WHERE remote_id = :remoteId AND seed_key IS NULL")
+    protected abstract suspend fun updateCatalogFields(remoteId: Long, name: String, muscleGroup: String)
 
     @Query("SELECT id FROM exercises WHERE remote_id = :remoteId")
     protected abstract suspend fun idOfRemote(remoteId: Long): Long?
