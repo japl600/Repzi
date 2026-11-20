@@ -1,0 +1,38 @@
+{
+  "count": 3,
+  "next": "https://wger.de/api/v2/exerciseinfo/?limit=100&offset=100",
+  "previous": null,
+  "results": [
+    {
+      "id": 9,
+      "uuid": "1b020b3a-3732-4c7e-92fd-a0cec90ed69b",
+      "last_update_global": "2026-10-24T16:00:18.357676+02:00",
+      "category": {"id": 10, "name": "Abs"},
+      "muscles": [{"id": 11, "name": "Biceps femoris"}],
+      "equipment": [{"id": 10, "name": "Kettlebell"}],
+      "license": {"id": 2, "short_name": "CC-BY-SA 4"},
+      "images": [],
+      "translations": [
+        {"id": 345, "name": "2 Handed Kettlebell Swing", "description": "<ol><li>Stand up.</li></ol>", "language": 2, "license": 2, "license_author": "deusinvictus"},
+        {"id": 346, "name": "Swing con kettlebell", "description": "<p>De pie.</p>", "language": 4, "license": 1, "license_author": "someone"},
+        {"id": 5253, "name": "Swing com kettlebell", "description": "<p>Em pe.</p>", "language": 7, "license": 2, "license_author": "jptjptjptjpt"}
+      ]
+    },
+    {
+      "id": 1115,
+      "last_update_global": "2026-10-20T10:00:00+02:00",
+      "category": {"id": 15, "name": "Cardio"},
+      "translations": [
+        {"id": 1, "name": "3D lunge warmup", "description": "", "language": 2, "license": 3, "license_author": null}
+      ]
+    },
+    {
+      "id": 687,
+      "last_update_global": "2026-09-01T09:00:00+02:00",
+      "category": {"id": 11, "name": "Chest"},
+      "translations": [
+        {"id": 2, "name": "Overhead Press", "description": "<p>Press.</p>", "language": 2, "license": 2, "license_author": "wger.de"}
+      ]
+    }
+  ]
+}

@@ -32,6 +32,7 @@ include(":core:data")
 include(":core:database")
 include(":core:ui")
 include(":core:testing")
+include(":core:network")
 
 include(":feature:exercises")
 include(":feature:routines")
