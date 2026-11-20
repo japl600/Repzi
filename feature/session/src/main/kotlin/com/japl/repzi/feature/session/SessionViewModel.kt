@@ -3,9 +3,11 @@ package com.japl.repzi.feature.session
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.japl.repzi.core.domain.RestReminderScheduler
 import com.japl.repzi.core.domain.usecase.DeleteWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
+import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestVibrationUseCase
 import com.japl.repzi.core.domain.usecase.SaveSessionResult
 import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
@@ -42,6 +44,8 @@ class SessionViewModel @Inject constructor(
     private val deleteDraft: DeleteWorkoutDraftUseCase,
     private val setExerciseRest: SetExerciseRestUseCase,
     private val observeRestVibration: ObserveRestVibrationUseCase,
+    private val observeRestNotification: ObserveRestNotificationUseCase,
+    private val restReminders: RestReminderScheduler,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -142,6 +146,7 @@ class SessionViewModel @Inject constructor(
                 // Two separate writes: if the process dies in between, the draft outlives its session and the
                 // workout can be finished again. That is preferred over losing it.
                 is SaveSessionResult.Saved -> {
+                    restReminders.cancel()
                     discardDraft()
                     _effects.send(SessionEffect.Close)
                 }
@@ -153,12 +158,14 @@ class SessionViewModel @Inject constructor(
 
     private fun discard() {
         viewModelScope.launch {
+            restReminders.cancel()
             discardDraft()
             _effects.send(SessionEffect.Close)
         }
     }
 
     private fun close() {
+        restReminders.cancel()
         viewModelScope.launch { _effects.send(SessionEffect.Close) }
     }
 
@@ -189,8 +196,22 @@ class SessionViewModel @Inject constructor(
     private fun startRest(seconds: Int) {
         restJob?.cancel()
         restTotalSeconds = seconds
-        restEndsAt = clock.now() + seconds.seconds
+        val endsAt = clock.now() + seconds.seconds
+        restEndsAt = endsAt
+        scheduleReminder(endsAt)
         restJob = viewModelScope.launch { tickRest() }
+    }
+
+    /**
+     * Asks for the alarm that wakes the user when the rest ends with the app out of sight. The setting is read here, so
+     * the user's latest choice applies, and the alarm is only set if this rest is still the one in progress by then.
+     * It is cancelled by what the user does (skip, finish, leave), never at the natural end of the countdown: the
+     * countdown also reaches zero in the background, and the alarm decides by itself whether the app is on screen.
+     */
+    private fun scheduleReminder(endsAt: Instant) {
+        viewModelScope.launch {
+            if (observeRestNotification().first() && restEndsAt == endsAt) restReminders.schedule(endsAt)
+        }
     }
 
     private suspend fun tickRest() {
@@ -220,12 +241,14 @@ class SessionViewModel @Inject constructor(
             return
         }
         restEndsAt = newEnd
+        scheduleReminder(newEnd)
         restTotalSeconds = (restTotalSeconds + deltaSeconds).coerceAtLeast(remaining)
         _state.update { it.copy(rest = RestCountdown(restTotalSeconds, remaining)) }
     }
 
     private fun stopRest() {
         restJob?.cancel()
+        restReminders.cancel()
         clearRest()
     }
 

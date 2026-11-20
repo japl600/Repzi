@@ -8,14 +8,17 @@ import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.Routine
 import com.japl.repzi.core.domain.model.RoutineExercise
+import com.japl.repzi.core.domain.repository.SettingsRepository
 import com.japl.repzi.core.domain.usecase.DeleteWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
+import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestVibrationUseCase
 import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.SetExerciseRestUseCase
 import com.japl.repzi.core.testing.FakeDraftRepository
+import com.japl.repzi.core.testing.FakeRestReminderScheduler
 import com.japl.repzi.core.testing.FakeRoutineRepository
 import com.japl.repzi.core.testing.FakeSessionRepository
 import com.japl.repzi.core.testing.FakeSettingsRepository
@@ -28,7 +31,10 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -60,7 +66,15 @@ class SessionRestViewModelTest {
 
     private val viewModels = mutableListOf<SessionViewModel>()
 
-    private fun createViewModel() = SessionViewModel(
+    private val reminders = FakeRestReminderScheduler()
+
+    /** Reads the "notify when a rest ends" setting only once the test lets it, to catch a rest that changes meanwhile. */
+    private class GatedSettings(private val gate: CompletableDeferred<Boolean>) :
+        SettingsRepository by FakeSettingsRepository() {
+        override val restNotification: Flow<Boolean> = flow { emit(gate.await()) }
+    }
+
+    private fun createViewModel(notificationSettings: SettingsRepository = settings) = SessionViewModel(
         savedStateHandle = SavedStateHandle(mapOf(ROUTINE_ID_ARG to 7L)),
         getRoutine = GetRoutineUseCase(routines),
         saveSession = SaveSessionUseCase(sessions),
@@ -69,6 +83,8 @@ class SessionRestViewModelTest {
         deleteDraft = DeleteWorkoutDraftUseCase(drafts),
         setExerciseRest = SetExerciseRestUseCase(routines),
         observeRestVibration = ObserveRestVibrationUseCase(settings),
+        observeRestNotification = ObserveRestNotificationUseCase(notificationSettings),
+        restReminders = reminders,
         clock = clock,
     ).also { viewModels += it }
 
@@ -330,5 +346,126 @@ class SessionRestViewModelTest {
         viewModel.onIntent(SessionIntent.FinishClicked)
 
         assertEquals(5, sessions.saved.single().exercises.single().sets.single().reps)
+    }
+
+    // The alarm that wakes the user when the rest ends while the app is not on screen.
+
+    private val startOfRest = Instant.fromEpochMilliseconds(1_000)
+
+    @Test
+    fun schedulesTheReminderAtTheEndOfTheRestWhenTheSettingIsOn() = runRestTest {
+        settings.setRestNotification(true)
+        val viewModel = createViewModel()
+
+        viewModel.tick(0)
+
+        assertEquals(listOf(startOfRest + 60.seconds), reminders.scheduled)
+    }
+
+    @Test
+    fun schedulesNothingWhenTheSettingIsOff() = runRestTest {
+        val viewModel = createViewModel()
+
+        viewModel.tick(0)
+
+        assertEquals(emptyList(), reminders.scheduled)
+    }
+
+    @Test
+    fun adjustingTheRestMovesTheReminder() = runRestTest {
+        settings.setRestNotification(true)
+        val viewModel = createViewModel()
+        viewModel.tick(0)
+        elapse(10)
+
+        viewModel.onIntent(SessionIntent.RestAdjusted(15))
+
+        assertEquals(listOf(startOfRest + 60.seconds, startOfRest + 75.seconds), reminders.scheduled)
+    }
+
+    @Test
+    fun skippingTheRestCancelsTheReminder() = runRestTest {
+        settings.setRestNotification(true)
+        val viewModel = createViewModel()
+        viewModel.tick(0)
+
+        viewModel.onIntent(SessionIntent.RestSkipped)
+
+        assertEquals(1, reminders.cancelCount)
+    }
+
+    @Test
+    fun takingAwayAllTheRestCancelsTheReminder() = runRestTest {
+        settings.setRestNotification(true)
+        val viewModel = createViewModel()
+        viewModel.tick(0)
+        elapse(50)
+
+        viewModel.onIntent(SessionIntent.RestAdjusted(-15))
+
+        assertEquals(1, reminders.cancelCount)
+    }
+
+    @Test
+    fun finishingTheWorkoutCancelsTheReminder() = runRestTest {
+        settings.setRestNotification(true)
+        val viewModel = createViewModel()
+        viewModel.onIntent(SessionIntent.RepsChanged(0, 0, "5"))
+        viewModel.tick(0)
+
+        viewModel.onIntent(SessionIntent.FinishClicked)
+
+        assertEquals(1, reminders.cancelCount)
+    }
+
+    @Test
+    fun discardingTheWorkoutCancelsTheReminder() = runRestTest {
+        settings.setRestNotification(true)
+        val viewModel = createViewModel()
+        viewModel.onIntent(SessionIntent.RepsChanged(0, 0, "5"))
+        viewModel.tick(0)
+
+        viewModel.onIntent(SessionIntent.BackClicked)
+        viewModel.onIntent(SessionIntent.DiscardConfirmed)
+
+        assertEquals(1, reminders.cancelCount)
+    }
+
+    @Test
+    fun leavingWithoutInputCancelsTheReminder() = runRestTest {
+        settings.setRestNotification(true)
+        val viewModel = createViewModel()
+        viewModel.tick(0)
+
+        // Only a tick, nothing typed: going back leaves at once.
+        viewModel.onIntent(SessionIntent.BackClicked)
+
+        assertEquals(1, reminders.cancelCount)
+    }
+
+    @Test
+    fun theReminderIsNotCancelledWhenTheCountdownEndsInTheApp() = runRestTest {
+        settings.setRestNotification(true)
+        val viewModel = createViewModel()
+        viewModel.tick(0)
+
+        elapse(60)
+
+        // The alarm decides by itself, looking at whether the app is on screen. Cancelling here would also cancel it
+        // when the app is in the background and the countdown still reaches zero.
+        assertEquals(0, reminders.cancelCount)
+    }
+
+    @Test
+    fun aRestStoppedBeforeTheSettingWasReadIsNotScheduled() = runRestTest {
+        val gate = CompletableDeferred<Boolean>()
+        val viewModel = createViewModel(notificationSettings = GatedSettings(gate))
+        viewModel.tick(0)
+        viewModel.onIntent(SessionIntent.RestSkipped)
+
+        gate.complete(true)
+        runCurrent()
+
+        assertEquals(emptyList(), reminders.scheduled)
     }
 }

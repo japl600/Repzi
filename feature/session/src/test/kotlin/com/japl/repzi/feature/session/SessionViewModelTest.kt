@@ -15,11 +15,13 @@ import com.japl.repzi.core.domain.repository.DraftRepository
 import com.japl.repzi.core.domain.usecase.DeleteWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
+import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestVibrationUseCase
 import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.SetExerciseRestUseCase
 import com.japl.repzi.core.testing.FakeDraftRepository
+import com.japl.repzi.core.testing.FakeRestReminderScheduler
 import com.japl.repzi.core.testing.FakeRoutineRepository
 import com.japl.repzi.core.testing.FakeSessionRepository
 import com.japl.repzi.core.testing.FakeSettingsRepository
@@ -70,6 +72,8 @@ class SessionViewModelTest {
         deleteDraft = DeleteWorkoutDraftUseCase(draftRepository),
         setExerciseRest = SetExerciseRestUseCase(routines),
         observeRestVibration = ObserveRestVibrationUseCase(FakeSettingsRepository()),
+        observeRestNotification = ObserveRestNotificationUseCase(FakeSettingsRepository()),
+        restReminders = FakeRestReminderScheduler(),
         clock = clock,
     )
 
