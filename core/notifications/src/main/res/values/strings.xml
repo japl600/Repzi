@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_channel_rest_name">Rest timer</string>
+    <string name="notification_channel_rest_description">Tells you when a rest between sets is over</string>
+    <string name="notification_channel_inactivity_name">Workout reminders</string>
+    <string name="notification_channel_inactivity_description">Reminds you to train after some days without a workout</string>
+    <string name="notification_rest_title">Rest is over</string>
+    <string name="notification_rest_text">Time for your next set.</string>
+</resources>

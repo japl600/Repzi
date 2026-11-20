@@ -37,6 +37,7 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.database)
     implementation(projects.core.network)
+    implementation(projects.core.notifications)
     implementation(projects.core.ui)
 
     implementation(projects.feature.exercises)

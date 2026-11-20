@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_channel_rest_name">Descanso</string>
+    <string name="notification_channel_rest_description">Te avisa cuando termina un descanso entre series</string>
+    <string name="notification_channel_inactivity_name">Recordatorios de entrenamiento</string>
+    <string name="notification_channel_inactivity_description">Te recuerda entrenar tras varios días sin hacerlo</string>
+    <string name="notification_rest_title">Descanso terminado</string>
+    <string name="notification_rest_text">Es hora de tu siguiente serie.</string>
+</resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Runtime permission on Android 13+; the Settings screen asks for it when a notification is turned on. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- The rest-over alarm is exact when the user allows it; without it the alarm is approximate. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <application>
+        <receiver
+            android:name=".RestReminderReceiver"
+            android:exported="false" />
+    </application>
+
+</manifest>

@@ -33,6 +33,7 @@ include(":core:database")
 include(":core:ui")
 include(":core:testing")
 include(":core:network")
+include(":core:notifications")
 
 include(":feature:exercises")
 include(":feature:routines")
