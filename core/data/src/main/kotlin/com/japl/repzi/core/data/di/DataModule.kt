@@ -12,6 +12,8 @@ import com.japl.repzi.core.data.sync.CatalogStore
 import com.japl.repzi.core.data.sync.CatalogSyncRunner
 import com.japl.repzi.core.data.sync.ExerciseCatalogSync
 import com.japl.repzi.core.data.sync.RoomCatalogStore
+import com.japl.repzi.core.data.work.WorkManagerCatalogSyncScheduler
+import com.japl.repzi.core.domain.CatalogSyncScheduler
 import com.japl.repzi.core.domain.DispatcherProvider
 import com.japl.repzi.core.domain.repository.DraftRepository
 import com.japl.repzi.core.domain.repository.ExerciseRepository
@@ -53,4 +55,7 @@ internal abstract class DataModule {
 
     @Binds
     abstract fun bindCatalogSyncRunner(impl: ExerciseCatalogSync): CatalogSyncRunner
+
+    @Binds
+    abstract fun bindCatalogSyncScheduler(impl: WorkManagerCatalogSyncScheduler): CatalogSyncScheduler
 }
