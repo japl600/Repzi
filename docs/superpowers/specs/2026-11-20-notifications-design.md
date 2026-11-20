@@ -57,7 +57,7 @@ Same shape as `:core:network` (library + Hilt convention plugins). It owns chann
 ### Inactivity reminder
 
 - A unique periodic work `inactivity-check`, every 24 hours, first run delayed to the next 18:00 local time, scheduled on every app start with `KEEP` (like the catalog sync). It always exists; the worker reads the settings when it runs and does nothing if the reminder is off.
-- Rule as a pure function `InactivityRule.shouldNotify(now, lastWorkoutAt, days, lastNoticedFor)`: false if there is no finished workout yet; true when `now - lastWorkoutAt` is at least `days` days and `lastNoticedFor != lastWorkoutAt`. After sending, the worker records `lastWorkoutAt`. Training again changes `lastWorkoutAt`, which rearms the reminder.
+- Rule as a pure function `InactivityRule.shouldNotify(now, lastWorkoutAt, days, lastNoticedFor)`: false if there is no finished workout yet; true when `now - lastWorkoutAt` is at least `days` days and `lastWorkoutAt` is newer than `lastNoticedFor` (so deleting the latest workout cannot trigger a second notice for an older one). After sending, the worker records `lastWorkoutAt`. Training again changes `lastWorkoutAt`, which rearms the reminder.
 - Text: "Time to train - it has been N days since your last workout" (plural strings; N is the whole days elapsed).
 - The last workout comes from `SessionRepository.observeSessions()` (largest `finishedAt`); no new query.
 
