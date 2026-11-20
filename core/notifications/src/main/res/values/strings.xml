@@ -6,4 +6,9 @@
     <string name="notification_channel_inactivity_description">Reminds you to train after some days without a workout</string>
     <string name="notification_rest_title">Rest is over</string>
     <string name="notification_rest_text">Time for your next set.</string>
+    <string name="notification_inactivity_title">Time to train</string>
+    <plurals name="notification_inactivity_text">
+        <item quantity="one">It has been %d day since your last workout.</item>
+        <item quantity="other">It has been %d days since your last workout.</item>
+    </plurals>
 </resources>

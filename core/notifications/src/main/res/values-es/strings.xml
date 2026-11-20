@@ -6,4 +6,9 @@
     <string name="notification_channel_inactivity_description">Te recuerda entrenar tras varios días sin hacerlo</string>
     <string name="notification_rest_title">Descanso terminado</string>
     <string name="notification_rest_text">Es hora de tu siguiente serie.</string>
+    <string name="notification_inactivity_title">Es hora de entrenar</string>
+    <plurals name="notification_inactivity_text">
+        <item quantity="one">Ha pasado %d día desde tu último entrenamiento.</item>
+        <item quantity="other">Han pasado %d días desde tu último entrenamiento.</item>
+    </plurals>
 </resources>
