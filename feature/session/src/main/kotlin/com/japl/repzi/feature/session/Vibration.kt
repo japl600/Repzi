@@ -1,6 +1,7 @@
 package com.japl.repzi.feature.session
 
 import android.content.Context
+import android.media.AudioAttributes
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -17,7 +18,11 @@ internal fun Context.buzzRestOver() {
         getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
     }
     if (vibrator?.hasVibrator() == true) {
-        vibrator.vibrate(VibrationEffect.createWaveform(REST_OVER_PATTERN, NO_REPEAT))
+        // A vibration with no declared usage is "unknown", and Android drops it when the user has turned off touch and
+        // media vibration (as many phones have). The end of a rest is a timer alert, so it is declared as an alarm.
+        val alarm = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).build()
+        @Suppress("DEPRECATION")
+        vibrator.vibrate(VibrationEffect.createWaveform(REST_OVER_PATTERN, NO_REPEAT), alarm)
     }
 }
 
