@@ -8,6 +8,8 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.domain)
+
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.junit)
 

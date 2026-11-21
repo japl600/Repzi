@@ -6,4 +6,7 @@
     <string name="rest_picker_save">Save</string>
     <string name="rest_picker_cancel">Cancel</string>
     <string name="rest_picker_description">Rest between sets: %1$s</string>
+    <!-- Weight units, shared by the workout, history and progress screens. -->
+    <string name="unit_kg">kg</string>
+    <string name="unit_lb">lb</string>
 </resources>

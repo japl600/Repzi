@@ -1,5 +1,8 @@
 package com.japl.repzi.core.data.repository
 
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import com.japl.repzi.core.domain.model.WeightUnit
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -145,4 +148,28 @@ class DataStoreSettingsRepositoryTest {
     }
 
     private fun TestScope.firstScope(job: Job) = CoroutineScope(StandardTestDispatcher(testScheduler) + job)
+
+    @Test
+    fun weightUnitIsKilogramsByDefault() = runTest {
+        val repository = repository(settingsFile(), backgroundScope)
+
+        assertEquals(WeightUnit.KG, repository.weightUnit.first())
+    }
+
+    @Test
+    fun weightUnitIsPersisted() = runTest {
+        val repository = repository(settingsFile(), backgroundScope)
+
+        repository.setWeightUnit(WeightUnit.LB)
+
+        assertEquals(WeightUnit.LB, repository.weightUnit.first())
+    }
+
+    @Test
+    fun anUnknownStoredWeightUnitFallsBackToKilograms() = runTest {
+        val dataStore = createSettingsDataStore(backgroundScope) { settingsFile() }
+        dataStore.edit { it[stringPreferencesKey("weight_unit")] = "STONE" }
+
+        assertEquals(WeightUnit.KG, DataStoreSettingsRepository(dataStore).weightUnit.first())
+    }
 }

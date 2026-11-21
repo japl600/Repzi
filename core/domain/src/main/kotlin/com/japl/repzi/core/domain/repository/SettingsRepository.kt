@@ -1,5 +1,6 @@
 package com.japl.repzi.core.domain.repository
 
+import com.japl.repzi.core.domain.model.WeightUnit
 import kotlinx.coroutines.flow.Flow
 
 /** The days the inactivity reminder can wait before it fires. */
@@ -22,6 +23,9 @@ interface SettingsRepository {
     /** Days without a workout before the reminder fires; always inside [INACTIVITY_DAYS_RANGE]. */
     val inactivityDays: Flow<Int>
 
+    /** The unit weights are typed and shown in; weights are stored in kilograms whatever this is. Kilograms by default. */
+    val weightUnit: Flow<WeightUnit>
+
     suspend fun setRestVibration(enabled: Boolean)
 
     suspend fun setRestNotification(enabled: Boolean)
@@ -30,4 +34,6 @@ interface SettingsRepository {
 
     /** Values outside [INACTIVITY_DAYS_RANGE] are moved to its nearest end. */
     suspend fun setInactivityDays(days: Int)
+
+    suspend fun setWeightUnit(unit: WeightUnit)
 }
