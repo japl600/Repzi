@@ -2,13 +2,10 @@ package com.japl.repzi.core.notifications
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.japl.repzi.core.domain.AppVisibility
 import javax.inject.Inject
 
-/** Whether the user is looking at the app. A notification adds nothing then, so it is not posted. */
-fun interface AppVisibility {
-    fun isVisible(): Boolean
-}
-
+/** The app counts as visible while any of its activities is started (the process lifecycle). */
 internal class ProcessAppVisibility @Inject constructor() : AppVisibility {
 
     override fun isVisible(): Boolean =

@@ -81,7 +81,7 @@ Names of the use cases and classes beyond the ones above, the exact copy of the 
 
 - Default off for both notifications; permission asked when a switch is turned on.
 - Default 3 days, range 1 to 14; check once a day around 18:00; one notice per lapse; none before the first workout.
-- No notification while the app is visible, decided by the receiver and not by cancelling.
+- No notification while the app is visible, decided by the receiver when the alarm fires. After the final review the session also cancels the alarm at the natural end of a countdown, but only if the app is visible at that moment (otherwise an approximate alarm could arrive in the middle of the next set); in the background the alarm is left to fire.
 - Tapping the notification only brings the app back; it does not deep-link into the routine.
 - New module `:core:notifications` instead of putting this in `:core:data`.
 - The inactivity worker is always scheduled and the setting is read when it runs.

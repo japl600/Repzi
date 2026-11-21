@@ -3,6 +3,7 @@ package com.japl.repzi.feature.session
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.japl.repzi.core.domain.AppVisibility
 import com.japl.repzi.core.domain.RestReminderScheduler
 import com.japl.repzi.core.domain.usecase.DeleteWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
@@ -46,6 +47,7 @@ class SessionViewModel @Inject constructor(
     private val observeRestVibration: ObserveRestVibrationUseCase,
     private val observeRestNotification: ObserveRestNotificationUseCase,
     private val restReminders: RestReminderScheduler,
+    private val appVisibility: AppVisibility,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -205,8 +207,8 @@ class SessionViewModel @Inject constructor(
     /**
      * Asks for the alarm that wakes the user when the rest ends with the app out of sight. The setting is read here, so
      * the user's latest choice applies, and the alarm is only set if this rest is still the one in progress by then.
-     * It is cancelled by what the user does (skip, finish, leave), never at the natural end of the countdown: the
-     * countdown also reaches zero in the background, and the alarm decides by itself whether the app is on screen.
+     * It is cancelled by what the user does (skip, finish, leave) and at the natural end only while the app is on
+     * screen: the countdown also reaches zero in the background, where the alarm has to be left to fire.
      */
     private fun scheduleReminder(endsAt: Instant) {
         viewModelScope.launch {
@@ -220,6 +222,9 @@ class SessionViewModel @Inject constructor(
             val remaining = secondsUntil(endsAt)
             if (remaining <= 0) {
                 clearRest()
+                // With the app on screen the user just saw the rest end, and an approximate alarm could still arrive
+                // much later, in the middle of the next set. In the background the alarm is what tells them.
+                if (appVisibility.isVisible()) restReminders.cancel()
                 // Read now, not when the countdown started, so a change made while it was running applies.
                 if (observeRestVibration().first()) {
                     _effects.send(SessionEffect.RestFinished)

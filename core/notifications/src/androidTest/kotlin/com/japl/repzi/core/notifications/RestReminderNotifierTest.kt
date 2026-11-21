@@ -1,6 +1,7 @@
 package com.japl.repzi.core.notifications
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.japl.repzi.core.domain.AppVisibility
 import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.testing.FakeSettingsRepository
 import kotlin.test.Test

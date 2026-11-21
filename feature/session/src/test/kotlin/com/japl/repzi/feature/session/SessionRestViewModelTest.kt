@@ -18,6 +18,7 @@ import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.SetExerciseRestUseCase
 import com.japl.repzi.core.testing.FakeDraftRepository
+import com.japl.repzi.core.testing.FakeAppVisibility
 import com.japl.repzi.core.testing.FakeRestReminderScheduler
 import com.japl.repzi.core.testing.FakeRoutineRepository
 import com.japl.repzi.core.testing.FakeSessionRepository
@@ -67,6 +68,7 @@ class SessionRestViewModelTest {
     private val viewModels = mutableListOf<SessionViewModel>()
 
     private val reminders = FakeRestReminderScheduler()
+    private val visibility = FakeAppVisibility()
 
     /** Reads the "notify when a rest ends" setting only once the test lets it, to catch a rest that changes meanwhile. */
     private class GatedSettings(private val gate: CompletableDeferred<Boolean>) :
@@ -85,6 +87,7 @@ class SessionRestViewModelTest {
         observeRestVibration = ObserveRestVibrationUseCase(settings),
         observeRestNotification = ObserveRestNotificationUseCase(notificationSettings),
         restReminders = reminders,
+        appVisibility = visibility,
         clock = clock,
     ).also { viewModels += it }
 
@@ -444,16 +447,30 @@ class SessionRestViewModelTest {
     }
 
     @Test
-    fun theReminderIsNotCancelledWhenTheCountdownEndsInTheApp() = runRestTest {
+    fun theReminderIsKeptWhenTheCountdownEndsWithTheAppInTheBackground() = runRestTest {
         settings.setRestNotification(true)
+        visibility.visible = false
         val viewModel = createViewModel()
         viewModel.tick(0)
 
         elapse(60)
 
-        // The alarm decides by itself, looking at whether the app is on screen. Cancelling here would also cancel it
-        // when the app is in the background and the countdown still reaches zero.
+        // The countdown also reaches zero in the background, where the alarm is what tells the user.
         assertEquals(0, reminders.cancelCount)
+    }
+
+    @Test
+    fun theReminderIsCancelledWhenTheCountdownEndsWithTheAppVisible() = runRestTest {
+        settings.setRestNotification(true)
+        visibility.visible = true
+        val viewModel = createViewModel()
+        viewModel.tick(0)
+
+        elapse(60)
+
+        // The user saw the rest end. An approximate alarm can arrive long after, in the middle of the next set, and
+        // would tell them something they already know.
+        assertEquals(1, reminders.cancelCount)
     }
 
     @Test

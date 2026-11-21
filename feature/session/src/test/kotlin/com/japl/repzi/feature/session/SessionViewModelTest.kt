@@ -21,6 +21,7 @@ import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.SetExerciseRestUseCase
 import com.japl.repzi.core.testing.FakeDraftRepository
+import com.japl.repzi.core.testing.FakeAppVisibility
 import com.japl.repzi.core.testing.FakeRestReminderScheduler
 import com.japl.repzi.core.testing.FakeRoutineRepository
 import com.japl.repzi.core.testing.FakeSessionRepository
@@ -74,6 +75,7 @@ class SessionViewModelTest {
         observeRestVibration = ObserveRestVibrationUseCase(FakeSettingsRepository()),
         observeRestNotification = ObserveRestNotificationUseCase(FakeSettingsRepository()),
         restReminders = FakeRestReminderScheduler(),
+        appVisibility = FakeAppVisibility(),
         clock = clock,
     )
 

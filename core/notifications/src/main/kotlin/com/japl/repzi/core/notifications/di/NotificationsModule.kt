@@ -1,8 +1,8 @@
 package com.japl.repzi.core.notifications.di
 
+import com.japl.repzi.core.domain.AppVisibility
 import com.japl.repzi.core.domain.RestReminderScheduler
 import com.japl.repzi.core.notifications.AlarmManagerRestReminderScheduler
-import com.japl.repzi.core.notifications.AppVisibility
 import com.japl.repzi.core.notifications.InactivityNotifier
 import com.japl.repzi.core.notifications.NotificationGate
 import com.japl.repzi.core.notifications.NotificationManagerInactivityNotifier

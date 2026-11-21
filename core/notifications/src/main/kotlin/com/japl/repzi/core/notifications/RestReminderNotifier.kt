@@ -3,6 +3,7 @@ package com.japl.repzi.core.notifications
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
+import com.japl.repzi.core.domain.AppVisibility
 import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
