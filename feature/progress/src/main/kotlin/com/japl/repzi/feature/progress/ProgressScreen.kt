@@ -43,8 +43,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.japl.repzi.core.domain.model.Exercise
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.ui.component.EmptyState
-import com.japl.repzi.core.ui.component.formatNumber
+import com.japl.repzi.core.ui.component.formatRounded
+import com.japl.repzi.core.ui.component.formatWeight
+import com.japl.repzi.core.ui.component.label
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.time.Instant
@@ -181,12 +184,12 @@ private fun ChartCard(
                     verticalAlignment = Alignment.Bottom,
                 ) {
                     Text(
-                        text = latest?.let { metricText(metric, it.value) } ?: "—",
+                        text = latest?.let { metricText(metric, it.value, uiState.weightUnit) } ?: "—",
                         style = MaterialTheme.typography.headlineMedium,
                     )
                     uiState.change?.let { change ->
                         Text(
-                            text = metricText(metric, change, signed = true),
+                            text = metricText(metric, change, uiState.weightUnit, signed = true),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -214,8 +217,8 @@ private fun ChartCard(
                         R.string.progress_chart_description,
                         selected.name,
                         stringResource(metric.descriptionRes()),
-                        metricText(metric, series.last().value),
-                        metricText(metric, series.maxOf { it.value }),
+                        metricText(metric, series.last().value, uiState.weightUnit),
+                        metricText(metric, series.maxOf { it.value }, uiState.weightUnit),
                     ),
                 )
             }
@@ -256,7 +259,7 @@ private fun Stats(uiState: ProgressUiState) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         StatCard(
             label = stringResource(R.string.progress_record),
-            value = uiState.record?.let { metricText(uiState.metric, it) } ?: "—",
+            value = uiState.record?.let { metricText(uiState.metric, it, uiState.weightUnit) } ?: "—",
             modifier = Modifier.weight(1f),
         )
         StatCard(
@@ -302,9 +305,9 @@ private fun RecentSessions(uiState: ProgressUiState) {
                 Text(
                     // For the max weight the set it came from is more useful than the bare number.
                     text = if (metric == ProgressMetric.MAX_WEIGHT) {
-                        stringResource(R.string.progress_set, formatNumber(point.maxWeightKg), point.reps)
+                        stringResource(R.string.progress_set, formatWeight(point.maxWeightKg, uiState.weightUnit), point.reps, uiState.weightUnit.label())
                     } else {
-                        metricText(metric, metric.valueIn(point) ?: 0.0)
+                        metricText(metric, metric.shownIn(uiState.weightUnit, point), uiState.weightUnit)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -314,12 +317,12 @@ private fun RecentSessions(uiState: ProgressUiState) {
     }
 }
 
-/** [value] with its unit: kg for the weight metrics, reps otherwise. With [signed] it gets an explicit + or -. */
+/** [value] with its unit: [unit] for the weight metrics, reps otherwise. With [signed] it gets an explicit + or -. */
 @Composable
-private fun metricText(metric: ProgressMetric, value: Double, signed: Boolean = false): String {
-    val number = if (signed) signed(value) else formatNumber(value)
+private fun metricText(metric: ProgressMetric, value: Double, unit: WeightUnit, signed: Boolean = false): String {
+    val number = if (signed) signed(value) else formatRounded(value)
     return if (metric.isWeight) {
-        stringResource(R.string.progress_kg, number)
+        stringResource(R.string.progress_weight, number, unit.label())
     } else {
         pluralStringResource(R.plurals.progress_reps, abs(value).roundToInt(), number)
     }
@@ -358,4 +361,4 @@ private fun formatDate(context: android.content.Context, date: Instant): String 
     )
 
 /** A change with an explicit sign: +5 or -2.5 (zero is shown as +0). */
-private fun signed(value: Double): String = (if (value < 0) "-" else "+") + formatNumber(abs(value))
+private fun signed(value: Double): String = (if (value < 0) "-" else "+") + formatRounded(abs(value))

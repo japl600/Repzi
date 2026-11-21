@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.ProgressPoint
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.usecase.ObserveExerciseProgressUseCase
 import com.japl.repzi.core.domain.usecase.ObserveTrackedExercisesUseCase
+import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.time.Clock
@@ -27,6 +29,7 @@ class ProgressViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     observeTrackedExercises: ObserveTrackedExercisesUseCase,
     private val observeProgress: ObserveExerciseProgressUseCase,
+    observeWeightUnit: ObserveWeightUnitUseCase,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -43,15 +46,16 @@ class ProgressViewModel @Inject constructor(
         val exercise: Exercise?,
         val range: ProgressRange,
         val metric: ProgressMetric,
+        val unit: WeightUnit,
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<ProgressUiState> =
-        combine(observeTrackedExercises(), selectedId, range, requestedMetric) { tracked, id, range, metric ->
+        combine(observeTrackedExercises(), selectedId, range, requestedMetric, observeWeightUnit()) { tracked, id, range, metric, unit ->
             // An id that has no progress (or none at all) falls back to the first exercise of the list.
-            Selection(tracked, tracked.firstOrNull { it.id == id } ?: tracked.firstOrNull(), range, metric)
+            Selection(tracked, tracked.firstOrNull { it.id == id } ?: tracked.firstOrNull(), range, metric, unit)
         }
-            .flatMapLatest { (tracked, selected, range, requested) ->
+            .flatMapLatest { (tracked, selected, range, requested, unit) ->
                 if (selected == null) {
                     flowOf(ProgressUiState(isLoading = false))
                 } else {
@@ -68,6 +72,7 @@ class ProgressViewModel @Inject constructor(
                                 ?: requested,
                             availableMetrics = available,
                             points = points.within(range, clock.now()),
+                            weightUnit = unit,
                         )
                     }
                 }

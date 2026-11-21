@@ -14,6 +14,7 @@ import androidx.compose.ui.test.performScrollTo
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.ProgressPoint
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.ui.theme.RepziTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -87,7 +88,7 @@ class ProgressScreenTest {
 
         rule.onNodeWithText("Press de banca").assertIsDisplayed()
         // 60 to 65 kg is +5 kg, which is 8 % (8.3 rounded).
-        rule.onNodeWithText(string(R.string.progress_kg, "+5")).assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.progress_weight, "+5", "kg")).assertIsDisplayed()
         rule.onNodeWithText(string(R.string.progress_percent, "+8")).assertIsDisplayed()
         rule.onNodeWithText("3").assertIsDisplayed()
     }
@@ -100,8 +101,8 @@ class ProgressScreenTest {
             R.string.progress_chart_description,
             "Press de banca",
             string(R.string.progress_metric_max_weight),
-            string(R.string.progress_kg, "65"),
-            string(R.string.progress_kg, "65"),
+            string(R.string.progress_weight, "65", "kg"),
+            string(R.string.progress_weight, "65", "kg"),
         )
 
         rule.onNodeWithContentDescription(description).assertIsDisplayed()
@@ -131,7 +132,7 @@ class ProgressScreenTest {
 
         rule.onNodeWithText(string(R.string.progress_metric_volume)).assertIsDisplayed()
         // 65 kg x 4 reps, the latest session.
-        rule.onAllNodesWithText(string(R.string.progress_kg, "260")).assertCountEquals(2)
+        rule.onAllNodesWithText(string(R.string.progress_weight, "260", "kg")).assertCountEquals(2)
     }
 
     @Test
@@ -144,12 +145,22 @@ class ProgressScreenTest {
     }
 
     @Test
+    fun inPoundsTheFiguresAreConvertedAndLabelledWithTheUnit() {
+        setScreen(withData.copy(weightUnit = WeightUnit.LB))
+
+        // The latest session and the record are both 65 kg, which is 143.3 lb.
+        rule.onAllNodesWithText(string(R.string.progress_weight, "143.3", "lb")).assertCountEquals(2)
+        rule.onNodeWithText(string(R.string.progress_set, "143.3", 4, "lb")).performScrollTo().assertIsDisplayed()
+        rule.onAllNodesWithText(string(R.string.progress_weight, "143.3", "kg")).assertCountEquals(0)
+    }
+
+    @Test
     fun listsTheLatestSessions() {
         setScreen(withData)
 
         // The list is at the bottom of a scrollable screen, so on small screens it starts off screen.
-        rule.onNodeWithText(string(R.string.progress_set, "65", 4)).performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText(string(R.string.progress_set, "60", 5)).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.progress_set, "65", 4, "kg")).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.progress_set, "60", 5, "kg")).performScrollTo().assertIsDisplayed()
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.japl.repzi.feature.progress
 
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.ProgressPoint
+import com.japl.repzi.core.domain.model.WeightUnit
 import kotlin.math.roundToInt
 
 /** How far back the chart looks. [days] is null for the whole history. */
@@ -24,10 +25,12 @@ data class ProgressUiState(
     val availableMetrics: List<ProgressMetric> = emptyList(),
     /** Sessions inside [range], oldest first. */
     val points: List<ProgressPoint> = emptyList(),
+    /** The unit the weight metrics are shown in; [series] and everything derived from it are already converted. */
+    val weightUnit: WeightUnit = WeightUnit.KG,
 ) {
     /** The values of [metric] inside [range]; sessions where the metric does not apply are left out. */
     internal val series: List<ChartPoint> = points.mapNotNull { point ->
-        metric.valueIn(point)?.let { ChartPoint(point.date, it) }
+        metric.valueIn(point)?.let { ChartPoint(point.date, if (metric.isWeight) weightUnit.fromKg(it) else it) }
     }
 
     val record: Double? get() = series.maxOfOrNull { it.value }

@@ -1,6 +1,7 @@
 package com.japl.repzi.feature.progress
 
 import com.japl.repzi.core.domain.model.ProgressPoint
+import com.japl.repzi.core.domain.model.WeightUnit
 import kotlin.time.Instant
 
 /** What the chart plots for an exercise. Higher is always better, so the record is the maximum. */
@@ -21,3 +22,9 @@ internal fun ProgressMetric.valueIn(point: ProgressPoint): Double? = when (this)
 
 /** One plotted value: [value] is in kg for the weight metrics and in reps for [ProgressMetric.REPS]. */
 internal data class ChartPoint(val date: Instant, val value: Double)
+
+/** The figure of this metric in [point] as the user sees it: weights are stored in kilograms and shown in [unit]. */
+internal fun ProgressMetric.shownIn(unit: WeightUnit, point: ProgressPoint): Double {
+    val value = valueIn(point) ?: 0.0
+    return if (isWeight) unit.fromKg(value) else value
+}

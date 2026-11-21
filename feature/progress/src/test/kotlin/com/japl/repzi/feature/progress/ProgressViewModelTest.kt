@@ -5,10 +5,13 @@ import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.LoggedExercise
 import com.japl.repzi.core.domain.model.LoggedSet
 import com.japl.repzi.core.domain.model.MuscleGroup
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.domain.usecase.ObserveExerciseProgressUseCase
 import com.japl.repzi.core.domain.usecase.ObserveTrackedExercisesUseCase
+import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import com.japl.repzi.core.testing.FakeSessionRepository
+import com.japl.repzi.core.testing.FakeSettingsRepository
 import com.japl.repzi.core.testing.MainDispatcherRule
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -59,12 +62,45 @@ class ProgressViewModelTest {
         ),
     )
 
-    private fun createViewModel(exerciseId: Long = NO_EXERCISE) = ProgressViewModel(
+    private fun createViewModel(
+        exerciseId: Long = NO_EXERCISE,
+        unit: WeightUnit = WeightUnit.KG,
+    ) = ProgressViewModel(
         savedStateHandle = SavedStateHandle(mapOf(EXERCISE_ID_ARG to exerciseId)),
         observeTrackedExercises = ObserveTrackedExercisesUseCase(sessions),
         observeProgress = ObserveExerciseProgressUseCase(sessions),
+        observeWeightUnit = ObserveWeightUnitUseCase(FakeSettingsRepository(initialWeightUnit = unit)),
         clock = clock,
     )
+
+    @Test
+    fun inPoundsTheRecordAndTheChangeAreConvertedButNotThePercentage() = runTest {
+        val state = createViewModel(unit = WeightUnit.LB).uiState.first { !it.isLoading }
+
+        assertEquals(WeightUnit.LB, state.weightUnit)
+        // The bench went from 50 kg to 80 kg.
+        assertEquals(WeightUnit.LB.fromKg(80.0), state.record!!, absoluteTolerance = 1e-9)
+        assertEquals(WeightUnit.LB.fromKg(30.0), state.change!!, absoluteTolerance = 1e-9)
+        assertEquals(60, state.changePercent)
+    }
+
+    @Test
+    fun inKilogramsTheFiguresAreTheStoredOnes() = runTest {
+        val state = createViewModel().uiState.first { !it.isLoading }
+
+        assertEquals(80.0, state.record)
+        assertEquals(30.0, state.change)
+    }
+
+    @Test
+    fun repsAreNotConvertedWhateverTheUnit() = runTest {
+        val viewModel = createViewModel(unit = WeightUnit.LB)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        viewModel.onMetricSelected(ProgressMetric.REPS)
+
+        assertEquals(5.0, viewModel.uiState.value.record)
+    }
 
     @Test
     fun opensOnTheRequestedExercise() = runTest {
@@ -96,6 +132,7 @@ class ProgressViewModelTest {
             savedStateHandle = SavedStateHandle(),
             observeTrackedExercises = ObserveTrackedExercisesUseCase(empty),
             observeProgress = ObserveExerciseProgressUseCase(empty),
+            observeWeightUnit = ObserveWeightUnitUseCase(FakeSettingsRepository()),
             clock = clock,
         )
 
@@ -170,6 +207,7 @@ class ProgressViewModelTest {
         savedStateHandle = SavedStateHandle(mapOf(EXERCISE_ID_ARG to exerciseId)),
         observeTrackedExercises = ObserveTrackedExercisesUseCase(mixed),
         observeProgress = ObserveExerciseProgressUseCase(mixed),
+        observeWeightUnit = ObserveWeightUnitUseCase(FakeSettingsRepository()),
         clock = clock,
     )
 
@@ -227,6 +265,7 @@ class ProgressViewModelTest {
             savedStateHandle = SavedStateHandle(mapOf(EXERCISE_ID_ARG to pullUp.id)),
             observeTrackedExercises = ObserveTrackedExercisesUseCase(repository),
             observeProgress = ObserveExerciseProgressUseCase(repository),
+            observeWeightUnit = ObserveWeightUnitUseCase(FakeSettingsRepository()),
             clock = clock,
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }

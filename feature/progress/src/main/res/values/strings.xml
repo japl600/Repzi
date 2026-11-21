@@ -23,13 +23,13 @@
     <string name="progress_change">Change</string>
     <string name="progress_sessions">Sessions</string>
     <string name="progress_recent">Latest sessions</string>
-    <string name="progress_kg">%1$s kg</string>
+    <string name="progress_weight">%1$s %2$s</string>
     <plurals name="progress_reps">
         <item quantity="one">%1$s rep</item>
         <item quantity="other">%1$s reps</item>
     </plurals>
     <string name="progress_percent">%1$s %%</string>
-    <string name="progress_set">%1$s kg × %2$d</string>
+    <string name="progress_set">%1$s %3$s × %2$d</string>
     <string name="progress_empty">No progress to show yet. Log a workout and it will appear here.</string>
     <string name="progress_no_data_in_range">There are no sessions in this date range.</string>
     <string name="progress_chart_description">%1$s, %2$s: latest %3$s, record %4$s</string>

@@ -17,7 +17,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import com.japl.repzi.core.ui.component.formatNumber
+import com.japl.repzi.core.ui.component.formatRounded
 
 import kotlin.time.Instant
 
@@ -44,7 +44,7 @@ internal fun ProgressChart(
             .height(200.dp)
             .clearAndSetSemantics { contentDescription = description },
     ) {
-        val tickLabels = scale.ticks.map { measurer.measure(formatNumber(it), labelStyle) }
+        val tickLabels = scale.ticks.map { measurer.measure(formatRounded(it), labelStyle) }
         val dateLabels = listOf(points.first(), points.last())
             .map { formatDate(it.date) }
             .distinct()
