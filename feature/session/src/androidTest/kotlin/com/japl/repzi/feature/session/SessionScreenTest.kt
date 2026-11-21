@@ -25,6 +25,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.MuscleGroup
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.ui.R as UiR
 import com.japl.repzi.core.ui.theme.RepziTheme
 import kotlin.test.Test
@@ -76,6 +77,14 @@ class SessionScreenTest {
     private fun typeSet(weight: String, reps: String, firstFieldIndex: Int = 0) {
         field(firstFieldIndex).performTextInput(weight)
         field(firstFieldIndex + 1).performTextInput(reps)
+    }
+
+    @Test
+    fun theWeightFieldIsLabelledWithTheUnit() {
+        setScreen(loaded.copy(weightUnit = WeightUnit.LB))
+
+        rule.onAllNodesWithText(string(com.japl.repzi.core.ui.R.string.unit_lb)).assertCountEquals(2)
+        rule.onAllNodesWithText(string(com.japl.repzi.core.ui.R.string.unit_kg)).assertCountEquals(0)
     }
 
     @Test

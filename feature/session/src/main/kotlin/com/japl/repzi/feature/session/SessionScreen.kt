@@ -55,8 +55,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.japl.repzi.core.domain.model.RestTimer
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.ui.component.RestTimePickerDialog
 import com.japl.repzi.core.ui.component.formatRestTime
+import com.japl.repzi.core.ui.component.label
 
 @Composable
 fun SessionRoute(
@@ -135,7 +137,7 @@ internal fun SessionScreen(
             }
             // The same exercise can appear twice in a routine, so the position is the only stable key.
             itemsIndexed(state.exercises, key = { index, _ -> index }) { exerciseIndex, log ->
-                ExerciseCard(exerciseIndex = exerciseIndex, log = log, onIntent = onIntent)
+                ExerciseCard(exerciseIndex = exerciseIndex, log = log, weightUnit = state.weightUnit, onIntent = onIntent)
             }
         }
     }
@@ -176,6 +178,7 @@ internal fun SessionScreen(
 private fun ExerciseCard(
     exerciseIndex: Int,
     log: ExerciseLog,
+    weightUnit: WeightUnit,
     onIntent: (SessionIntent) -> Unit,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -192,6 +195,7 @@ private fun ExerciseCard(
                 SetRow(
                     number = setIndex + 1,
                     set = set,
+                    weightUnit = weightUnit,
                     canRemove = log.sets.size > 1,
                     onWeightChange = { onIntent(SessionIntent.WeightChanged(exerciseIndex, setIndex, it)) },
                     onRepsChange = { onIntent(SessionIntent.RepsChanged(exerciseIndex, setIndex, it)) },
@@ -244,6 +248,7 @@ private fun ExerciseHeader(
 private fun SetRow(
     number: Int,
     set: SetInput,
+    weightUnit: WeightUnit,
     canRemove: Boolean,
     onWeightChange: (String) -> Unit,
     onRepsChange: (String) -> Unit,
@@ -260,7 +265,7 @@ private fun SetRow(
             value = set.weight,
             onValueChange = onWeightChange,
             modifier = Modifier.weight(1f),
-            label = { Text(stringResource(R.string.session_weight_label)) },
+            label = { Text(weightUnit.label()) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         )

@@ -10,6 +10,7 @@ import com.japl.repzi.core.domain.model.LoggedSet
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.Routine
 import com.japl.repzi.core.domain.model.RoutineExercise
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.model.WorkoutDraft
 import com.japl.repzi.core.domain.repository.DraftRepository
 import com.japl.repzi.core.domain.usecase.DeleteWorkoutDraftUseCase
@@ -17,6 +18,7 @@ import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestVibrationUseCase
+import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.SetExerciseRestUseCase
@@ -64,6 +66,7 @@ class SessionViewModelTest {
     private fun createViewModel(
         routineId: Long = 5,
         draftRepository: DraftRepository = drafts,
+        settings: FakeSettingsRepository = FakeSettingsRepository(),
     ) = SessionViewModel(
         savedStateHandle = SavedStateHandle(mapOf(ROUTINE_ID_ARG to routineId)),
         getRoutine = GetRoutineUseCase(routines),
@@ -72,7 +75,8 @@ class SessionViewModelTest {
         saveDraft = SaveWorkoutDraftUseCase(draftRepository),
         deleteDraft = DeleteWorkoutDraftUseCase(draftRepository),
         setExerciseRest = SetExerciseRestUseCase(routines),
-        observeRestVibration = ObserveRestVibrationUseCase(FakeSettingsRepository()),
+        observeRestVibration = ObserveRestVibrationUseCase(settings),
+        observeWeightUnit = ObserveWeightUnitUseCase(settings),
         observeRestNotification = ObserveRestNotificationUseCase(FakeSettingsRepository()),
         restReminders = FakeRestReminderScheduler(),
         appVisibility = FakeAppVisibility(),
@@ -131,6 +135,20 @@ class SessionViewModelTest {
             listOf(LoggedExercise(squat, listOf(LoggedSet(5, 100.0), LoggedSet(4, 100.0)))),
             saved.exercises,
         )
+    }
+
+    @Test
+    fun aWeightTypedInPoundsIsSavedInKilograms() = runTest {
+        val viewModel = createViewModel(settings = FakeSettingsRepository(initialWeightUnit = WeightUnit.LB))
+        viewModel.onIntent(SessionIntent.WeightChanged(0, 0, "135"))
+        viewModel.onIntent(SessionIntent.RepsChanged(0, 0, "5"))
+
+        viewModel.onIntent(SessionIntent.FinishClicked)
+
+        assertEquals(WeightUnit.LB, viewModel.state.value.weightUnit)
+        val saved = sessions.saved.single().exercises.single().sets.single()
+        assertEquals(5, saved.reps)
+        assertEquals(61.2349, saved.weightKg, absoluteTolerance = 0.0001)
     }
 
     @Test

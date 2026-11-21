@@ -1,6 +1,7 @@
 package com.japl.repzi.feature.session
 
 import com.japl.repzi.core.domain.model.Exercise
+import com.japl.repzi.core.domain.model.WeightUnit
 
 /** Everything the screen needs to render. A single immutable object: the screen is a pure function of it. */
 data class SessionState(
@@ -14,6 +15,8 @@ data class SessionState(
     val rest: RestCountdown? = null,
     /** Index of the exercise whose rest timer is being edited, or null while the picker is closed. */
     val restEditing: Int? = null,
+    /** The unit the weight fields are typed in; read again at the moment the workout is saved. */
+    val weightUnit: WeightUnit = WeightUnit.KG,
 ) {
     /** True once the user typed anything, which is when leaving the screen needs a confirmation. */
     val hasInput: Boolean

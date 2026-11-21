@@ -3,7 +3,6 @@
     <string name="session_close">Cerrar</string>
     <string name="session_finish">Terminar</string>
     <string name="session_set_label">Serie %1$d</string>
-    <string name="session_weight_label">kg</string>
     <string name="session_reps_label">Reps</string>
     <string name="session_add_set">Añadir serie</string>
     <string name="session_remove_set">Quitar serie</string>

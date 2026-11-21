@@ -14,6 +14,7 @@ import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestVibrationUseCase
+import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.SetExerciseRestUseCase
@@ -85,6 +86,7 @@ class SessionRestViewModelTest {
         deleteDraft = DeleteWorkoutDraftUseCase(drafts),
         setExerciseRest = SetExerciseRestUseCase(routines),
         observeRestVibration = ObserveRestVibrationUseCase(settings),
+        observeWeightUnit = ObserveWeightUnitUseCase(settings),
         observeRestNotification = ObserveRestNotificationUseCase(notificationSettings),
         restReminders = reminders,
         appVisibility = visibility,

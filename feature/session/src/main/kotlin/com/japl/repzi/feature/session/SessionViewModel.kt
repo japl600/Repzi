@@ -10,6 +10,7 @@ import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestVibrationUseCase
+import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import com.japl.repzi.core.domain.usecase.SaveSessionResult
 import com.japl.repzi.core.domain.usecase.SaveSessionUseCase
 import com.japl.repzi.core.domain.usecase.SaveWorkoutDraftUseCase
@@ -45,6 +46,7 @@ class SessionViewModel @Inject constructor(
     private val deleteDraft: DeleteWorkoutDraftUseCase,
     private val setExerciseRest: SetExerciseRestUseCase,
     private val observeRestVibration: ObserveRestVibrationUseCase,
+    observeWeightUnit: ObserveWeightUnitUseCase,
     private val observeRestNotification: ObserveRestNotificationUseCase,
     private val restReminders: RestReminderScheduler,
     private val appVisibility: AppVisibility,
@@ -74,6 +76,8 @@ class SessionViewModel @Inject constructor(
     private var restTotalSeconds = 0
 
     init {
+        // Kept in the state itself (no combine) so the text fields never wait on a second flow while typing.
+        viewModelScope.launch { observeWeightUnit().collect { unit -> _state.update { it.copy(weightUnit = unit) } } }
         viewModelScope.launch {
             val routine = getRoutine(routineId)
             if (routine == null) {
