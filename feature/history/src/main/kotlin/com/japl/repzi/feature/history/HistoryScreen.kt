@@ -36,9 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.japl.repzi.core.domain.model.LoggedExercise
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.ui.component.EmptyState
-import com.japl.repzi.core.ui.component.formatNumber
+import com.japl.repzi.core.ui.component.formatWeight
+import com.japl.repzi.core.ui.component.label
 
 @Composable
 fun HistoryRoute(
@@ -95,7 +97,7 @@ internal fun HistoryScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(uiState.sessions, key = { it.id }) { session ->
-                        SessionCard(session = session, onDelete = { onDeleteRequested(session) })
+                        SessionCard(session = session, weightUnit = uiState.weightUnit, onDelete = { onDeleteRequested(session) })
                     }
                 }
             }
@@ -120,6 +122,7 @@ internal fun HistoryScreen(
 @Composable
 private fun SessionCard(
     session: WorkoutSession,
+    weightUnit: WeightUnit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -149,7 +152,8 @@ private fun SessionCard(
                 text = stringResource(
                     R.string.history_summary,
                     pluralStringResource(R.plurals.history_minutes, minutes, minutes),
-                    formatNumber(session.totalVolumeKg),
+                    formatWeight(session.totalVolumeKg, weightUnit),
+                    weightUnit.label(),
                 ),
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -157,17 +161,18 @@ private fun SessionCard(
                 modifier = Modifier.padding(end = 12.dp, top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                session.exercises.forEach { ExerciseSummary(it) }
+                session.exercises.forEach { ExerciseSummary(it, weightUnit) }
             }
         }
     }
 }
 
 @Composable
-private fun ExerciseSummary(logged: LoggedExercise) {
+private fun ExerciseSummary(logged: LoggedExercise, weightUnit: WeightUnit) {
     Column {
         Text(logged.exercise.name, style = MaterialTheme.typography.titleSmall)
-        val sets = logged.sets.map { stringResource(R.string.history_set, formatNumber(it.weightKg), it.reps) }
+        val unit = weightUnit.label()
+        val sets = logged.sets.map { stringResource(R.string.history_set, formatWeight(it.weightKg, weightUnit), it.reps, unit) }
         Text(sets.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
     }
 }

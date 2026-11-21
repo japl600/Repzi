@@ -1,9 +1,12 @@
 package com.japl.repzi.feature.history
 
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.domain.usecase.DeleteSessionUseCase
 import com.japl.repzi.core.domain.usecase.ObserveSessionsUseCase
+import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import com.japl.repzi.core.testing.FakeSessionRepository
+import com.japl.repzi.core.testing.FakeSettingsRepository
 import com.japl.repzi.core.testing.MainDispatcherRule
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -33,9 +36,12 @@ class HistoryViewModelTest {
 
     private val repository = FakeSessionRepository(listOf(session(1, 1_000), session(2, 9_000)))
 
+    private val settings = FakeSettingsRepository()
+
     private fun createViewModel() = HistoryViewModel(
         observeSessions = ObserveSessionsUseCase(repository),
         deleteSession = DeleteSessionUseCase(repository),
+        observeWeightUnit = ObserveWeightUnitUseCase(settings),
     )
 
     @Test
@@ -52,6 +58,18 @@ class HistoryViewModelTest {
 
         assertFalse(state.isLoading)
         assertEquals(listOf(2L, 1L), state.sessions.map { it.id })
+    }
+
+    @Test
+    fun showsKilogramsUntilTheUserChoosesAnotherUnit() = runTest {
+        val viewModel = createViewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        assertEquals(WeightUnit.KG, viewModel.uiState.value.weightUnit)
+
+        settings.setWeightUnit(WeightUnit.LB)
+
+        assertEquals(WeightUnit.LB, viewModel.uiState.value.weightUnit)
     }
 
     @Test

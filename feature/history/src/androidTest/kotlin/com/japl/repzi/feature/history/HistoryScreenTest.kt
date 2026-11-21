@@ -13,6 +13,7 @@ import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.LoggedExercise
 import com.japl.repzi.core.domain.model.LoggedSet
 import com.japl.repzi.core.domain.model.MuscleGroup
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.ui.theme.RepziTheme
 import kotlin.test.Test
@@ -71,9 +72,19 @@ class HistoryScreenTest {
         val minutes = rule.activity.resources.getQuantityString(R.plurals.history_minutes, 45, 45)
         // 5 x 100 + 5 x 102.5 = 1012.5 kg, shown with its decimal part.
         rule.onNodeWithText("Full body").assertIsDisplayed()
-        rule.onNodeWithText(string(R.string.history_summary, minutes, "1012.5")).assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.history_summary, minutes, "1012.5", "kg")).assertIsDisplayed()
         rule.onNodeWithText("Sentadilla").assertIsDisplayed()
         rule.onNodeWithText("100 kg × 5 · 102.5 kg × 5").assertIsDisplayed()
+    }
+
+    @Test
+    fun inPoundsTheVolumeAndTheSetsAreConverted() {
+        setScreen(HistoryUiState(isLoading = false, sessions = listOf(fullBody), weightUnit = WeightUnit.LB))
+
+        val minutes = rule.activity.resources.getQuantityString(R.plurals.history_minutes, 45, 45)
+        // 1012.5 kg is 2232.18 lb; 100 kg is 220.46 lb and 102.5 kg is 225.97 lb.
+        rule.onNodeWithText(string(R.string.history_summary, minutes, "2232.18", "lb")).assertIsDisplayed()
+        rule.onNodeWithText("220.46 lb × 5 · 225.97 lb × 5").assertIsDisplayed()
     }
 
     @Test

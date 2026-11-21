@@ -7,8 +7,8 @@
     <string name="history_progress">Ver progreso</string>
     <string name="history_delete_title">Eliminar entrenamiento</string>
     <string name="history_delete_message">¿Eliminar el entrenamiento \"%1$s\"? Esta acción no se puede deshacer.</string>
-    <string name="history_summary">%1$s · %2$s kg levantados</string>
-    <string name="history_set">%1$s kg × %2$d</string>
+    <string name="history_summary">%1$s · %2$s %3$s levantados</string>
+    <string name="history_set">%1$s %3$s × %2$d</string>
     <plurals name="history_minutes">
         <item quantity="one">%d minuto</item>
         <item quantity="other">%d minutos</item>

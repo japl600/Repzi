@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.domain.usecase.DeleteSessionUseCase
 import com.japl.repzi.core.domain.usecase.ObserveSessionsUseCase
+import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,13 +18,14 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     observeSessions: ObserveSessionsUseCase,
+    observeWeightUnit: ObserveWeightUnitUseCase,
     private val deleteSession: DeleteSessionUseCase,
 ) : ViewModel() {
 
     private val sessionToDelete = MutableStateFlow<WorkoutSession?>(null)
 
-    val uiState: StateFlow<HistoryUiState> = combine(observeSessions(), sessionToDelete) { sessions, pending ->
-        HistoryUiState(isLoading = false, sessions = sessions, sessionToDelete = pending)
+    val uiState: StateFlow<HistoryUiState> = combine(observeSessions(), sessionToDelete, observeWeightUnit()) { sessions, pending, unit ->
+        HistoryUiState(isLoading = false, sessions = sessions, sessionToDelete = pending, weightUnit = unit)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
