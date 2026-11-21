@@ -14,6 +14,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.japl.repzi.core.ui.theme.RepziTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -77,14 +78,15 @@ class SettingsScreenTest {
     fun showsVersion() {
         setScreen()
 
-        rule.onNodeWithText("0.1.0 (1)").assertIsDisplayed()
+        // The screen scrolls and the version is at the bottom: on a small screen it is below the fold until scrolled to.
+        rule.onNodeWithText("0.1.0 (1)").performScrollTo().assertIsDisplayed()
     }
 
     @Test
     fun languageRowIsShownWhenAvailable() {
         setScreen(languageAvailable = true)
 
-        rule.onNodeWithText(string(R.string.settings_language)).performClick()
+        rule.onNodeWithText(string(R.string.settings_language)).performScrollTo().performClick()
 
         assertEquals(1, languageOpened)
     }
@@ -100,7 +102,7 @@ class SettingsScreenTest {
     fun sourceCodeRowOpensTheRepository() {
         setScreen()
 
-        rule.onNodeWithText(string(R.string.settings_source_code)).performClick()
+        rule.onNodeWithText(string(R.string.settings_source_code)).performScrollTo().performClick()
 
         assertEquals(1, sourceCodeOpened)
     }
@@ -109,7 +111,7 @@ class SettingsScreenTest {
     fun licensesRowOpensTheLicensesScreen() {
         setScreen()
 
-        rule.onNodeWithText(string(R.string.settings_licenses)).performClick()
+        rule.onNodeWithText(string(R.string.settings_licenses)).performScrollTo().performClick()
 
         assertEquals(1, licensesOpened)
     }
@@ -118,7 +120,7 @@ class SettingsScreenTest {
     fun exerciseDataRowOpensTheSource() {
         setScreen()
 
-        rule.onNodeWithText(string(R.string.settings_exercise_data)).performClick()
+        rule.onNodeWithText(string(R.string.settings_exercise_data)).performScrollTo().performClick()
 
         assertEquals(1, exerciseDataOpened)
     }
@@ -152,8 +154,8 @@ class SettingsScreenTest {
     fun notificationSwitchesCallBackWithTheNewValue() {
         setScreen(restNotification = false, inactivityReminder = false)
 
-        rule.onNodeWithText(string(R.string.settings_rest_notification)).performClick()
-        rule.onNodeWithText(string(R.string.settings_inactivity_reminder)).performClick()
+        rule.onNodeWithText(string(R.string.settings_rest_notification)).performScrollTo().performClick()
+        rule.onNodeWithText(string(R.string.settings_inactivity_reminder)).performScrollTo().performClick()
 
         assertEquals(listOf(true), restNotificationChanges)
         assertEquals(listOf(true), inactivityReminderChanges)
@@ -177,8 +179,8 @@ class SettingsScreenTest {
     fun stepperLessAndMoreCallBackWithDaysMinusAndPlusOne() {
         setScreen(inactivityReminder = true, inactivityDays = 5)
 
-        rule.onNodeWithContentDescription(string(R.string.settings_inactivity_days_less)).performClick()
-        rule.onNodeWithContentDescription(string(R.string.settings_inactivity_days_more)).performClick()
+        rule.onNodeWithContentDescription(string(R.string.settings_inactivity_days_less)).performScrollTo().performClick()
+        rule.onNodeWithContentDescription(string(R.string.settings_inactivity_days_more)).performScrollTo().performClick()
 
         assertEquals(listOf(4, 6), inactivityDaysChanges)
     }
@@ -203,7 +205,7 @@ class SettingsScreenTest {
     fun blockedHintIsShownAndOpensTheSystemSettings() {
         setScreen(hints = NotificationHints(notificationsBlocked = true, exactTimingMissing = false))
 
-        rule.onNodeWithText(string(R.string.settings_notifications_blocked)).performClick()
+        rule.onNodeWithText(string(R.string.settings_notifications_blocked)).performScrollTo().performClick()
 
         assertEquals(1, notificationSettingsOpened)
     }
@@ -219,7 +221,7 @@ class SettingsScreenTest {
     fun exactTimingHintIsShownAndOpensItsScreen() {
         setScreen(restNotification = true, hints = NotificationHints(notificationsBlocked = false, exactTimingMissing = true))
 
-        rule.onNodeWithText(string(R.string.settings_exact_timing_missing)).performClick()
+        rule.onNodeWithText(string(R.string.settings_exact_timing_missing)).performScrollTo().performClick()
 
         assertEquals(1, exactAlarmSettingsOpened)
     }
@@ -235,7 +237,7 @@ class SettingsScreenTest {
     fun tappingTheVibrationRowReportsTheNewValue() {
         setScreen(restVibration = true)
 
-        rule.onNodeWithText(string(R.string.settings_rest_vibration)).performClick()
+        rule.onNodeWithText(string(R.string.settings_rest_vibration)).performScrollTo().performClick()
 
         assertEquals(listOf(false), vibrationChanges)
     }
