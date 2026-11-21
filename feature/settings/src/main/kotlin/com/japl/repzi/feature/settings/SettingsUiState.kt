@@ -1,5 +1,6 @@
 package com.japl.repzi.feature.settings
 
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.repository.DEFAULT_INACTIVITY_DAYS
 
 data class SettingsUiState(
@@ -7,6 +8,7 @@ data class SettingsUiState(
     val restNotification: Boolean = false,
     val inactivityReminder: Boolean = false,
     val inactivityDays: Int = DEFAULT_INACTIVITY_DAYS,
+    val weightUnit: WeightUnit = WeightUnit.KG,
 )
 
 /**

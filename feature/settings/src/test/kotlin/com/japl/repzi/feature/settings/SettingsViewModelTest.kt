@@ -1,13 +1,16 @@
 package com.japl.repzi.feature.settings
 
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.usecase.ObserveInactivityDaysUseCase
 import com.japl.repzi.core.domain.usecase.ObserveInactivityReminderUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestVibrationUseCase
+import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import com.japl.repzi.core.domain.usecase.SetInactivityDaysUseCase
 import com.japl.repzi.core.domain.usecase.SetInactivityReminderUseCase
 import com.japl.repzi.core.domain.usecase.SetRestNotificationUseCase
 import com.japl.repzi.core.domain.usecase.SetRestVibrationUseCase
+import com.japl.repzi.core.domain.usecase.SetWeightUnitUseCase
 import com.japl.repzi.core.testing.FakeSettingsRepository
 import com.japl.repzi.core.testing.MainDispatcherRule
 import kotlin.test.Test
@@ -39,6 +42,8 @@ class SettingsViewModelTest {
         setInactivityReminder = SetInactivityReminderUseCase(repository),
         observeInactivityDays = ObserveInactivityDaysUseCase(repository),
         setInactivityDays = SetInactivityDaysUseCase(repository),
+        observeWeightUnit = ObserveWeightUnitUseCase(repository),
+        setWeightUnit = SetWeightUnitUseCase(repository),
     )
 
     @Test
@@ -65,6 +70,28 @@ class SettingsViewModelTest {
         repository.setInactivityDays(9)
 
         assertEquals(SettingsUiState(restNotification = true, inactivityReminder = true, inactivityDays = 9), viewModel.uiState.value)
+    }
+
+    @Test
+    fun theWeightUnitStartsInKilogramsAndFollowsTheRepository() = runTest {
+        val viewModel = createViewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+
+        assertEquals(WeightUnit.KG, viewModel.uiState.value.weightUnit)
+
+        repository.setWeightUnit(WeightUnit.LB)
+
+        assertEquals(WeightUnit.LB, viewModel.uiState.value.weightUnit)
+    }
+
+    @Test
+    fun choosingAWeightUnitWritesItToTheRepository() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.onWeightUnitChange(WeightUnit.LB)
+        advanceUntilIdle()
+
+        assertEquals(WeightUnit.LB, repository.weightUnit.first())
     }
 
     @Test

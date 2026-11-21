@@ -2,14 +2,17 @@ package com.japl.repzi.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.usecase.ObserveInactivityDaysUseCase
 import com.japl.repzi.core.domain.usecase.ObserveInactivityReminderUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRestVibrationUseCase
+import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import com.japl.repzi.core.domain.usecase.SetInactivityDaysUseCase
 import com.japl.repzi.core.domain.usecase.SetInactivityReminderUseCase
 import com.japl.repzi.core.domain.usecase.SetRestNotificationUseCase
 import com.japl.repzi.core.domain.usecase.SetRestVibrationUseCase
+import com.japl.repzi.core.domain.usecase.SetWeightUnitUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,6 +31,8 @@ class SettingsViewModel @Inject constructor(
     private val setInactivityReminder: SetInactivityReminderUseCase,
     observeInactivityDays: ObserveInactivityDaysUseCase,
     private val setInactivityDays: SetInactivityDaysUseCase,
+    observeWeightUnit: ObserveWeightUnitUseCase,
+    private val setWeightUnit: SetWeightUnitUseCase,
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = combine(
@@ -35,12 +40,14 @@ class SettingsViewModel @Inject constructor(
         observeRestNotification(),
         observeInactivityReminder(),
         observeInactivityDays(),
-    ) { vibration, notification, reminder, days ->
+        observeWeightUnit(),
+    ) { vibration, notification, reminder, days, unit ->
         SettingsUiState(
             restVibration = vibration,
             restNotification = notification,
             inactivityReminder = reminder,
             inactivityDays = days,
+            weightUnit = unit,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -58,6 +65,10 @@ class SettingsViewModel @Inject constructor(
 
     fun onInactivityReminderChange(enabled: Boolean) {
         viewModelScope.launch { setInactivityReminder(enabled) }
+    }
+
+    fun onWeightUnitChange(unit: WeightUnit) {
+        viewModelScope.launch { setWeightUnit(unit) }
     }
 
     fun onInactivityDaysChange(days: Int) {

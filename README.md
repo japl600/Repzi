@@ -42,7 +42,7 @@ feature/
   session                log sets, reps and weight for a routine, built with MVI; ticking a set starts the exercise's rest countdown (adjustable, with a buzz when it ends and an optional notification when the app is out of sight); the workout in progress is saved as a draft in Room and resumes after the app is closed (implemented)
   history                finished workouts, most recent first, with duration and volume (implemented)
   progress               per-exercise Canvas line chart of max weight, estimated 1RM, volume or reps with date ranges, opened from Exercises or History (implemented)
-  settings               fourth tab: shortcut to the per-app language setting (Android 13+), rest timer vibration switch, notification switches and the days of the inactivity reminder, all stored in Preferences DataStore, open-source licenses (AboutLibraries), link to the source code and the app version (implemented)
+  settings               fourth tab: shortcut to the per-app language setting (Android 13+), rest timer vibration switch, a kg / lb weight unit (weights stay stored in kilograms, only typing and display convert), notification switches and the days of the inactivity reminder, all stored in Preferences DataStore, open-source licenses (AboutLibraries), link to the source code and the app version (implemented)
 build-logic/convention   convention plugins (repzi.android.*, repzi.jvm.library)
 ```
 

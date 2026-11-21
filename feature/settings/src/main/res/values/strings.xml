@@ -5,6 +5,7 @@
     <string name="settings_section_help">Help</string>
     <string name="settings_language">Language</string>
     <string name="settings_rest_vibration">Rest timer vibration</string>
+    <string name="settings_weight_unit">Weight unit</string>
     <string name="settings_section_notifications">Notifications</string>
     <string name="settings_rest_notification">Notify when a rest ends</string>
     <string name="settings_inactivity_reminder">Remind me when I stop training</string>

@@ -6,8 +6,10 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -15,6 +17,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.ui.theme.RepziTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -31,6 +34,7 @@ class SettingsScreenTest {
     private var licensesOpened = 0
     private var exerciseDataOpened = 0
     private val vibrationChanges = mutableListOf<Boolean>()
+    private val weightUnitChanges = mutableListOf<WeightUnit>()
     private val restNotificationChanges = mutableListOf<Boolean>()
     private val inactivityReminderChanges = mutableListOf<Boolean>()
     private val inactivityDaysChanges = mutableListOf<Int>()
@@ -43,6 +47,7 @@ class SettingsScreenTest {
         restNotification: Boolean = false,
         inactivityReminder: Boolean = false,
         inactivityDays: Int = 3,
+        weightUnit: WeightUnit = WeightUnit.KG,
         hints: NotificationHints = NotificationHints(notificationsBlocked = false, exactTimingMissing = false),
     ) {
         rule.setContent {
@@ -53,8 +58,10 @@ class SettingsScreenTest {
                         restNotification = restNotification,
                         inactivityReminder = inactivityReminder,
                         inactivityDays = inactivityDays,
+                        weightUnit = weightUnit,
                     ),
                     onRestVibrationChange = { vibrationChanges += it },
+                    onWeightUnitChange = { weightUnitChanges += it },
                     hints = hints,
                     onRestNotificationChange = { restNotificationChanges += it },
                     onInactivityReminderChange = { inactivityReminderChanges += it },
@@ -240,6 +247,24 @@ class SettingsScreenTest {
         rule.onNodeWithText(string(R.string.settings_rest_vibration)).performScrollTo().performClick()
 
         assertEquals(listOf(false), vibrationChanges)
+    }
+
+    @Test
+    fun theWeightUnitRowMarksTheCurrentUnit() {
+        setScreen(weightUnit = WeightUnit.LB)
+
+        rule.onNodeWithText(string(R.string.settings_weight_unit)).assertIsDisplayed()
+        rule.onNodeWithText(string(com.japl.repzi.core.ui.R.string.unit_lb)).assertIsSelected()
+        rule.onNodeWithText(string(com.japl.repzi.core.ui.R.string.unit_kg)).assertIsNotSelected()
+    }
+
+    @Test
+    fun choosingAnotherWeightUnitReportsIt() {
+        setScreen(weightUnit = WeightUnit.KG)
+
+        rule.onNodeWithText(string(com.japl.repzi.core.ui.R.string.unit_lb)).performScrollTo().performClick()
+
+        assertEquals(listOf(WeightUnit.LB), weightUnitChanges)
     }
 
     @Test

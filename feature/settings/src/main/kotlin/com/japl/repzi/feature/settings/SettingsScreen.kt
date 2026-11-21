@@ -27,6 +27,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -47,7 +50,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.repository.INACTIVITY_DAYS_RANGE
+import com.japl.repzi.core.ui.component.label
 
 private const val SOURCE_CODE_URL = "https://github.com/japl600/Repzi"
 private const val EXERCISE_DATA_URL = "https://wger.de"
@@ -104,6 +109,7 @@ fun SettingsRoute(
     SettingsScreen(
         uiState = uiState,
         onRestVibrationChange = viewModel::onRestVibrationChange,
+        onWeightUnitChange = viewModel::onWeightUnitChange,
         hints = hints,
         onRestNotificationChange = { changeNotification(it, viewModel::onRestNotificationChange) },
         onInactivityReminderChange = { changeNotification(it, viewModel::onInactivityReminderChange) },
@@ -142,6 +148,7 @@ fun SettingsRoute(
 internal fun SettingsScreen(
     uiState: SettingsUiState,
     onRestVibrationChange: (Boolean) -> Unit,
+    onWeightUnitChange: (WeightUnit) -> Unit,
     hints: NotificationHints,
     onRestNotificationChange: (Boolean) -> Unit,
     onInactivityReminderChange: (Boolean) -> Unit,
@@ -170,6 +177,7 @@ internal fun SettingsScreen(
                 checked = uiState.restVibration,
                 onCheckedChange = onRestVibrationChange,
             )
+            WeightUnitRow(selected = uiState.weightUnit, onSelected = onWeightUnitChange)
             SectionHeader(stringResource(R.string.settings_section_notifications))
             SwitchRow(
                 title = stringResource(R.string.settings_rest_notification),
@@ -304,4 +312,25 @@ private fun Context.versionLabel(): String {
         info.versionCode.toLong()
     }
     return "${info.versionName.orEmpty()} ($code)"
+}
+
+/** Kilograms or pounds: how weights are typed in a workout and shown everywhere. Stored data does not change. */
+@Composable
+private fun WeightUnitRow(selected: WeightUnit, onSelected: (WeightUnit) -> Unit) {
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.settings_weight_unit)) },
+        trailingContent = {
+            SingleChoiceSegmentedButtonRow {
+                WeightUnit.entries.forEachIndexed { index, unit ->
+                    SegmentedButton(
+                        selected = unit == selected,
+                        onClick = { onSelected(unit) },
+                        shape = SegmentedButtonDefaults.itemShape(index, WeightUnit.entries.size),
+                    ) {
+                        Text(unit.label())
+                    }
+                }
+            }
+        },
+    )
 }
