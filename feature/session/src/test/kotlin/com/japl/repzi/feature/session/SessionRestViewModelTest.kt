@@ -194,6 +194,21 @@ class SessionRestViewModelTest {
     }
 
     @Test
+    fun withTheAppOutOfSightTheEndOfTheRestDoesNotBuzzBecauseTheNotificationDoes() = runRestTest {
+        visibility.visible = false
+        val viewModel = createViewModel()
+
+        viewModel.effects.test {
+            viewModel.tick(0)
+
+            elapse(60)
+
+            expectNoEvents()
+        }
+        assertNull(viewModel.state.value.rest)
+    }
+
+    @Test
     fun switchingVibrationOffDuringTheCountdownSilencesIt() = runRestTest {
         val viewModel = createViewModel()
 

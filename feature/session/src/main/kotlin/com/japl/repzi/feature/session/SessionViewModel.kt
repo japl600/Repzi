@@ -225,8 +225,9 @@ class SessionViewModel @Inject constructor(
                 // With the app on screen the user just saw the rest end, and an approximate alarm could still arrive
                 // much later, in the middle of the next set. In the background the alarm is what tells them.
                 if (appVisibility.isVisible()) restReminders.cancel()
-                // Read now, not when the countdown started, so a change made while it was running applies.
-                if (observeRestVibration().first()) {
+                // Read now, not when the countdown started, so a change made while it was running applies. The buzz is
+                // for the screen the user is looking at: out of sight the notification vibrates, and both would be two.
+                if (appVisibility.isVisible() && observeRestVibration().first()) {
                     _effects.send(SessionEffect.RestFinished)
                 }
                 return
