@@ -87,10 +87,11 @@ class ProgressScreenTest {
         setScreen(withData)
 
         rule.onNodeWithText("Press de banca").assertIsDisplayed()
+        // The results sit below the chart in a scrollable screen, so on a small one they start off screen.
         // 60 to 65 kg is +5 kg, which is 8 % (8.3 rounded).
-        rule.onNodeWithText(string(R.string.progress_weight, "+5", "kg")).assertIsDisplayed()
-        rule.onNodeWithText(string(R.string.progress_percent, "+8")).assertIsDisplayed()
-        rule.onNodeWithText("3").assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.progress_weight, "+5", "kg")).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.progress_percent, "+8")).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("3").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -105,7 +106,7 @@ class ProgressScreenTest {
             string(R.string.progress_weight, "65", "kg"),
         )
 
-        rule.onNodeWithContentDescription(description).assertIsDisplayed()
+        rule.onNodeWithContentDescription(description).performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -177,7 +178,7 @@ class ProgressScreenTest {
     fun saysSoWhenTheRangeHasNoSessions() {
         setScreen(withData.copy(range = ProgressRange.MONTH, points = emptyList()))
 
-        rule.onNodeWithText(string(R.string.progress_no_data_in_range)).assertIsDisplayed()
+        rule.onNodeWithText(string(R.string.progress_no_data_in_range)).performScrollTo().assertIsDisplayed()
     }
 
     @Test
