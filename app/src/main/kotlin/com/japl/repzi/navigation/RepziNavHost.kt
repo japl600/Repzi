@@ -1,5 +1,7 @@
 package com.japl.repzi.navigation
 
+import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
@@ -9,10 +11,14 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.core.util.Consumer
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -31,6 +37,7 @@ import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 @Composable
 fun RepziNavHost() {
     val navController = rememberNavController()
+    DeepLinksFromNewIntents(navController)
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     // Secondary screens (like the routine editor) hide the bar.
@@ -74,5 +81,20 @@ fun RepziNavHost() {
             // The list of libraries is generated into this module's resources by the AboutLibraries plugin.
             settingsScreens(navController) { produceLibraries(R.raw.aboutlibraries).value }
         }
+    }
+}
+
+/**
+ * MainActivity is `singleTop`, so tapping the home-screen widget while the app is open delivers its link to the running
+ * activity as a new intent. Navigation Compose only reads the intent the activity started with, so this passes the
+ * later ones on.
+ */
+@Composable
+private fun DeepLinksFromNewIntents(navController: NavHostController) {
+    val activity = LocalContext.current as? ComponentActivity ?: return
+    DisposableEffect(activity, navController) {
+        val listener = Consumer<Intent> { intent -> navController.handleDeepLink(intent) }
+        activity.addOnNewIntentListener(listener)
+        onDispose { activity.removeOnNewIntentListener(listener) }
     }
 }
