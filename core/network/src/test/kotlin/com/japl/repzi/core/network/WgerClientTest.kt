@@ -131,6 +131,24 @@ class WgerClientTest {
     }
 
     @Test
+    fun oneMalformedExerciseIsSkippedAndTheRestOfThePageIsKept() = runTest {
+        // The middle record has no `last_update_global` and a null category: it cannot be read, the others can.
+        server.enqueue(
+            MockResponse.Builder().code(200).addHeader("Content-Type", "application/json").body(
+                """
+                {"next": null, "results": [
+                  {"id": 1, "last_update_global": "2026-01-01T00:00:00+00:00", "category": {"name": "Abs"}, "translations": []},
+                  {"id": 2, "category": null},
+                  {"id": 3, "last_update_global": "2026-01-02T00:00:00+00:00", "category": {"name": "Legs"}, "translations": []}
+                ]}
+                """.trimIndent(),
+            ).build(),
+        )
+
+        assertEquals(listOf(1L, 3L), client.fetchPage(0).exercises.map { it.id })
+    }
+
+    @Test
     fun malformedJsonIsNotRetryable() = runTest {
         server.enqueue(
             MockResponse.Builder().code(200).body("<html>not json</html>")

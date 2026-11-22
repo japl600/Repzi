@@ -1,7 +1,15 @@
 package com.japl.repzi.core.network
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.jsonArray
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -19,8 +27,35 @@ internal interface WgerApi {
 @Serializable
 internal data class ExercisePageDto(
     val next: String? = null,
-    val results: List<ExerciseDto> = emptyList(),
+    @Serializable(with = ExerciseListSerializer::class) val results: List<ExerciseDto> = emptyList(),
 )
+
+/**
+ * Reads a list one element at a time and drops the ones that cannot be read, so a single malformed record does not
+ * cost the whole page. The page size seen by the caller is then the number of readable records, which can be a little
+ * smaller than what wger sent; the next request overlaps by that much and the overlap is skipped as already stored.
+ */
+internal class LenientListSerializer<T>(private val element: KSerializer<T>) : KSerializer<List<T>> {
+
+    private val all = ListSerializer(element)
+
+    override val descriptor: SerialDescriptor = all.descriptor
+
+    override fun serialize(encoder: Encoder, value: List<T>) = all.serialize(encoder, value)
+
+    override fun deserialize(decoder: Decoder): List<T> {
+        val json = decoder as JsonDecoder
+        return json.decodeJsonElement().jsonArray.mapNotNull { item ->
+            try {
+                json.json.decodeFromJsonElement(element, item)
+            } catch (_: SerializationException) {
+                null
+            }
+        }
+    }
+}
+
+internal object ExerciseListSerializer : KSerializer<List<ExerciseDto>> by LenientListSerializer(ExerciseDto.serializer())
 
 @Serializable
 internal data class ExerciseDto(
