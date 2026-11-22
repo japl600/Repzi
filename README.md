@@ -4,7 +4,7 @@
 
 A gym workout logger for Android. Build routines (your own, or predefined ones copied with a tap), log sets, reps and weight while you train, rest with a countdown, and watch your progress over time. It works offline, in English and Spanish, in kilograms or pounds.
 
-It is also a portfolio project: a multi-module Clean Architecture app built with current Android tooling, developed test-first, with about 500 tests that run in CI on every push.
+It is also a portfolio project: a multi-module Clean Architecture app built with current Android tooling, developed test-first, with more than 500 tests that run in CI on every push.
 
 ## Screenshots
 
@@ -18,6 +18,7 @@ It is also a portfolio project: a multi-module Clean Architecture app built with
   <img src="docs/screenshots/progress.png" width="24%" alt="Progress chart with metric selector">
   <img src="docs/screenshots/exercise-detail.png" width="24%" alt="Exercise detail with numbered steps, author and license">
   <img src="docs/screenshots/settings.png" width="24%" alt="Settings: language, vibration, weight unit and notifications">
+  <img src="docs/screenshots/widget.png" width="24%" alt="Home-screen widget: last workout and a button to start the next routine">
 </p>
 
 The workout data shown is sample data.
@@ -30,6 +31,7 @@ The workout data shown is sample data.
 - **History and progress.** Finished workouts with duration and volume, and a per-exercise chart (drawn on a Canvas) of max weight, estimated 1RM, volume or reps over 1, 3 or 6 months.
 - **Settings.** Language, weight unit (kg / lb), rest vibration, notifications, open-source licenses, source code link.
 - **Notifications.** A notice when a rest ends and a reminder after a few days without training (see below).
+- **Home-screen widget.** A 2x2 Jetpack Glance widget shows your last workout and one button: it starts the routine that is up next (the one after your last, in the list's order), or resumes a workout you left unfinished. The button opens the workout through a deep link.
 
 ## Technical highlights
 
@@ -38,6 +40,7 @@ The workout data shown is sample data.
 - **Process death and rotation.** The workout draft lives in Room, not in memory. Pending permission requests and dialogs use `rememberSaveable`, and there are tests that recreate the activity.
 - **Correct time-based work.** The rest-over notice is an `AlarmManager` alarm (exact when allowed, approximate otherwise) so it arrives with the screen off. The inactivity check is a daily WorkManager job with a rule that sends one notice per lapse.
 - **Data you can trust.** Weights are always stored in kilograms and only converted when typed or shown, so switching units never touches the data. Room migrations (schema v1 to v7) are exported and tested. The wger client skips one malformed record instead of dropping the whole page.
+- **A widget that stays correct.** An app-side observer redraws it only when what it shows changes (typing in a workout rewrites the draft all the time, but the widget only cares that one exists), and the state is collected inside the widget's content, because Glance only recomposes an open session and does not run the setup code again. The rule that picks the routine is a pure function with unit tests.
 - **Localization.** `values-es` in every module; built-in exercises are stored with a stable key and translated when shown, so their names follow the app language, even when it changes while the app is open.
 - **Build.** Gradle convention plugins in `build-logic`, a version catalog, and a CI that runs unit tests and the Compose and Room tests on an emulator.
 
@@ -48,10 +51,13 @@ Clean Architecture modularized by layer and by feature.
 ```mermaid
 graph TD
     app --> feature
+    app --> widget[feature:widget]
     app --> data[core:data]
     app --> notifications[core:notifications]
     feature --> domain[core:domain]
     feature --> ui[core:ui]
+    widget --> domain
+    widget --> ui
     data --> domain
     data --> database[core:database]
     data --> network[core:network]
@@ -75,10 +81,11 @@ feature/
   history                finished workouts
   progress               per-exercise charts
   settings               preferences (Preferences DataStore), licenses, about
+  widget                 the 2x2 Glance home-screen widget, its state rule and the updater
 build-logic/convention   convention plugins (repzi.android.*, repzi.jvm.library)
 ```
 
-Allowed dependencies: `feature` → `core:domain` + `core:ui`; `core:data` → `core:domain` + `core:database` + `core:network`; `core:notifications` → `core:domain`; `app` knows everything in order to build the Hilt graph. `core:domain` has no Android dependencies, so it can be moved to Kotlin Multiplatform later.
+Allowed dependencies: `feature` (every module under `feature/`, the widget included) → `core:domain` + `core:ui`; `core:data` → `core:domain` + `core:database` + `core:network`; `core:notifications` → `core:domain`; `app` knows everything in order to build the Hilt graph. `core:domain` has no Android dependencies, so it can be moved to Kotlin Multiplatform later.
 
 ## Stack
 
@@ -86,7 +93,7 @@ Kotlin, Coroutines and Flow, Jetpack Compose (Material 3, own teal/navy palette,
 
 ## Testing
 
-About 300 unit tests (use cases, view models, reducers, mappers, the wger client against a mock server) and about 190 instrumented tests (Compose screens, Room DAOs and migrations), TDD throughout. CI runs both on every push; the instrumented job runs on a small-screen emulator, which catches layouts that only fit on a big phone.
+About 330 unit tests (use cases, view models, reducers, mappers, the widget's rule and updater, the wger client against a mock server) and about 200 instrumented tests (Compose screens, Glance composition, Room DAOs and migrations), TDD throughout. CI runs both on every push; the instrumented job runs on a small-screen emulator, which catches layouts that only fit on a big phone.
 
 ## Data and licenses
 
@@ -109,6 +116,6 @@ Both are optional and off by default; the Android 13+ permission is asked when a
 
 ## Roadmap
 
-- **Done:** exercise library, custom and predefined routines, workout logging with a rest timer, history, progress charts, search, remote catalog with background sync, notifications, English and Spanish, kg / lb.
-- **Next:** a home-screen widget with Jetpack Glance.
-- **Later:** a foreground service with a live rest countdown in the notification (evaluated, not built), Baseline Profiles and Macrobenchmark with measured build and startup times, screenshot tests, migrating `core:domain` and `core:data` to Kotlin Multiplatform.
+- **Done:** exercise library, custom and predefined routines, workout logging with a rest timer, history, progress charts, search, remote catalog with background sync, notifications, English and Spanish, kg / lb, a home-screen widget.
+- **Next:** a second widget with the week's summary (workouts per day and volume against last week).
+- **Later:** a widget that redraws as soon as the app language changes (today it follows on its next update), a foreground service with a live rest countdown in the notification (evaluated, not built), Baseline Profiles and Macrobenchmark with measured build and startup times, screenshot tests, migrating `core:domain` and `core:data` to Kotlin Multiplatform.
