@@ -152,7 +152,7 @@ class SessionViewModel @Inject constructor(
                 // Two separate writes: if the process dies in between, the draft outlives its session and the
                 // workout can be finished again. That is preferred over losing it.
                 is SaveSessionResult.Saved -> {
-                    restReminders.cancel()
+                    stopRest()
                     discardDraft()
                     _effects.send(SessionEffect.Close)
                 }
@@ -164,14 +164,14 @@ class SessionViewModel @Inject constructor(
 
     private fun discard() {
         viewModelScope.launch {
-            restReminders.cancel()
+            stopRest()
             discardDraft()
             _effects.send(SessionEffect.Close)
         }
     }
 
     private fun close() {
-        restReminders.cancel()
+        stopRest()
         viewModelScope.launch { _effects.send(SessionEffect.Close) }
     }
 
@@ -211,8 +211,9 @@ class SessionViewModel @Inject constructor(
     /**
      * Asks for the alarm that wakes the user when the rest ends with the app out of sight. The setting is read here, so
      * the user's latest choice applies, and the alarm is only set if this rest is still the one in progress by then.
-     * It is cancelled by what the user does (skip, finish, leave) and at the natural end only while the app is on
-     * screen: the countdown also reaches zero in the background, where the alarm has to be left to fire.
+     * It is cancelled by what the user does: skip, finish and leave also end the rest, so a read of the setting that is
+     * still pending cannot set it afterwards. At the natural end it is cancelled only while the app is on screen: the
+     * countdown also reaches zero in the background, where the alarm has to be left to fire.
      */
     private fun scheduleReminder(endsAt: Instant) {
         viewModelScope.launch {

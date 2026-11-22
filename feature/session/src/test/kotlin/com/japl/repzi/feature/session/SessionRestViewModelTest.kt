@@ -502,4 +502,49 @@ class SessionRestViewModelTest {
 
         assertEquals(emptyList(), reminders.scheduled)
     }
+
+    @Test
+    fun aWorkoutFinishedBeforeTheSettingWasReadLeavesNoReminder() = runRestTest {
+        val gate = CompletableDeferred<Boolean>()
+        val viewModel = createViewModel(notificationSettings = GatedSettings(gate))
+        viewModel.onIntent(SessionIntent.RepsChanged(0, 0, "5"))
+        viewModel.tick(0)
+        viewModel.onIntent(SessionIntent.FinishClicked)
+        runCurrent()
+
+        // The reminder would ring for a rest that belongs to a workout that is over.
+        gate.complete(true)
+        runCurrent()
+
+        assertEquals(emptyList(), reminders.scheduled)
+    }
+
+    @Test
+    fun aWorkoutDiscardedBeforeTheSettingWasReadLeavesNoReminder() = runRestTest {
+        val gate = CompletableDeferred<Boolean>()
+        val viewModel = createViewModel(notificationSettings = GatedSettings(gate))
+        viewModel.onIntent(SessionIntent.RepsChanged(0, 0, "5"))
+        viewModel.tick(0)
+        viewModel.onIntent(SessionIntent.BackClicked)
+        viewModel.onIntent(SessionIntent.DiscardConfirmed)
+        runCurrent()
+
+        gate.complete(true)
+        runCurrent()
+
+        assertEquals(emptyList(), reminders.scheduled)
+    }
+
+    @Test
+    fun leavingBeforeTheSettingWasReadLeavesNoReminder() = runRestTest {
+        val gate = CompletableDeferred<Boolean>()
+        val viewModel = createViewModel(notificationSettings = GatedSettings(gate))
+        viewModel.tick(0)
+        viewModel.onIntent(SessionIntent.BackClicked)
+
+        gate.complete(true)
+        runCurrent()
+
+        assertEquals(emptyList(), reminders.scheduled)
+    }
 }
