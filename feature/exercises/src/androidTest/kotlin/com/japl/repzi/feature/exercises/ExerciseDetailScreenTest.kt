@@ -60,6 +60,14 @@ class ExerciseDetailScreenTest {
     }
 
     @Test
+    fun theStepsOfAnOrderedListShowTheirNumbers() {
+        setScreen(ExerciseDetailUiState(isLoading = false, detail = catalogDetail))
+
+        rule.onNodeWithText("1. Hold the kettlebell.", substring = true).assertIsDisplayed()
+        rule.onNodeWithText("2. Swing it.", substring = true).assertIsDisplayed()
+    }
+
+    @Test
     fun customExerciseHasNoAuthorBlock() {
         setScreen(
             ExerciseDetailUiState(

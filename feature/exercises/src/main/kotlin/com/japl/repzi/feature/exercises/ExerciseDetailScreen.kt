@@ -97,9 +97,14 @@ private fun DetailContent(detail: ExerciseDetail, onOpenUrl: (String) -> Unit, m
         SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline),
     )
     // wger descriptions are HTML from contributors. fromHtml keeps text, emphasis and links only; nothing is executed.
+    // It also drops the numbers of ordered lists, so those are written into the text first.
     val description = remember(detail.description, linkStyles, onOpenUrl) {
         detail.description?.let {
-            AnnotatedString.fromHtml(it.trim(), linkStyles = linkStyles, linkInteractionListener = webLinkListener(onOpenUrl))
+            AnnotatedString.fromHtml(
+                numberOrderedLists(it.trim()),
+                linkStyles = linkStyles,
+                linkInteractionListener = webLinkListener(onOpenUrl),
+            )
         }
     }
     val hasAttribution = detail.author != null || detail.licenseName != null || detail.sourceUrl != null
