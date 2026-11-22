@@ -4,18 +4,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.Button
-import androidx.glance.ButtonDefaults
 import androidx.glance.GlanceModifier
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
+import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -58,12 +62,30 @@ fun HomeWidgetContent(
             Text(it, style = TextStyle(color = ColorProvider(Slate), fontSize = 12.sp), maxLines = 1)
         }
         Spacer(GlanceModifier.defaultWeight())
-        Button(
-            text = texts.button,
-            onClick = buttonAction,
-            modifier = GlanceModifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(backgroundColor = ColorProvider(Teal), contentColor = ColorProvider(Navy)),
-            maxLines = 1,
-        )
+        ActionButton(texts.button, showPlay = target !is WidgetTarget.NoRoutines, onClick = buttonAction)
+    }
+}
+
+/**
+ * Glance 1.2's Button has no icon, so this is a row with the play triangle and the text. The triangle says "go" at a
+ * glance; with no routine the button only opens the app, so it has none.
+ */
+@Composable
+private fun ActionButton(text: String, showPlay: Boolean, onClick: Action) {
+    Row(
+        modifier = GlanceModifier
+            .fillMaxWidth()
+            .background(ColorProvider(Teal))
+            .cornerRadius(24.dp)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+            .clickable(onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (showPlay) {
+            Image(ImageProvider(R.drawable.ic_widget_play), contentDescription = null, modifier = GlanceModifier.size(18.dp))
+            Spacer(GlanceModifier.width(6.dp))
+        }
+        Text(text, style = TextStyle(color = ColorProvider(Navy), fontSize = 14.sp, fontWeight = FontWeight.Medium), maxLines = 1)
     }
 }
