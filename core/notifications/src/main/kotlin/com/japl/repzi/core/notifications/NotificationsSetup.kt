@@ -1,6 +1,7 @@
 package com.japl.repzi.core.notifications
 
 import android.content.Context
+import androidx.lifecycle.ProcessLifecycleOwner
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -12,5 +13,6 @@ class NotificationsSetup @Inject internal constructor(
     fun start() {
         NotificationChannels.create(context)
         inactivityScheduler.schedule()
+        ProcessLifecycleOwner.get().lifecycle.addObserver(StaleNotificationCleaner(context))
     }
 }
