@@ -12,6 +12,7 @@ import com.japl.repzi.core.domain.model.Routine
 import com.japl.repzi.core.domain.model.RoutineExercise
 import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.model.WorkoutDraft
+import com.japl.repzi.core.domain.model.WorkoutDraftInfo
 import com.japl.repzi.core.domain.repository.DraftRepository
 import com.japl.repzi.core.domain.usecase.DeleteWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.GetRoutineUseCase
@@ -37,6 +38,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -306,6 +308,7 @@ class SessionViewModelTest {
     fun aFailingDraftWriteDoesNotBreakTheWorkout() = runTest {
         val failing = object : DraftRepository {
             override suspend fun getDraft(routineId: Long): WorkoutDraft? = null
+            override fun observeDrafts() = emptyFlow<List<WorkoutDraftInfo>>()
             override suspend fun saveDraft(draft: WorkoutDraft) = error("disk full")
             override suspend fun deleteDraft(routineId: Long) = Unit
         }

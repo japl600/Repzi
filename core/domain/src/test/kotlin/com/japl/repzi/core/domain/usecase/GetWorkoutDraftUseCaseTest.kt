@@ -3,6 +3,7 @@ package com.japl.repzi.core.domain.usecase
 import com.japl.repzi.core.domain.model.DraftExercise
 import com.japl.repzi.core.domain.model.DraftSet
 import com.japl.repzi.core.domain.model.WorkoutDraft
+import com.japl.repzi.core.domain.model.WorkoutDraftInfo
 import com.japl.repzi.core.domain.repository.DraftRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,6 +11,8 @@ import kotlin.test.assertNull
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 
 class GetWorkoutDraftUseCaseTest {
@@ -22,6 +25,8 @@ class GetWorkoutDraftUseCaseTest {
         var draft: WorkoutDraft? = draft
 
         override suspend fun getDraft(routineId: Long) = draft?.takeIf { it.routineId == routineId }
+        override fun observeDrafts() =
+            flowOf(listOfNotNull(draft?.let { WorkoutDraftInfo(it.routineId, it.startedAt) }))
         override suspend fun saveDraft(draft: WorkoutDraft) {
             this.draft = draft
         }
@@ -57,6 +62,18 @@ class GetWorkoutDraftUseCaseTest {
         clock.current = startedAt + GetWorkoutDraftUseCase.MAX_AGE
 
         assertEquals(draft, GetWorkoutDraftUseCase(InMemoryRepository(draft), clock)(5))
+    }
+
+    @Test
+    fun observingListsTheDraftsEvenWhenTheyAreOld() = runTest {
+        clock.current = startedAt + GetWorkoutDraftUseCase.MAX_AGE + 1.minutes
+        val repository = InMemoryRepository(draft)
+
+        assertEquals(
+            listOf(WorkoutDraftInfo(routineId = 5, startedAt = startedAt)),
+            ObserveWorkoutDraftsUseCase(repository)().first(),
+        )
+        assertEquals(draft, repository.draft)
     }
 
     @Test

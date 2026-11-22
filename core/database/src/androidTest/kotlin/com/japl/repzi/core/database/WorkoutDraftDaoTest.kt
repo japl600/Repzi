@@ -17,6 +17,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
 
@@ -138,6 +139,27 @@ class WorkoutDraftDaoTest {
         assertEquals(0, draftSetCount())
         assertEquals("Push", routineDao.getById(routine)!!.routine.name)
         assertEquals(1, database.query("SELECT * FROM exercises", null).use { it.count })
+    }
+
+    @Test
+    fun observeAllFollowsTheDraftsThatExist() = runTest {
+        val bench = insertExercise("Banca")
+        val push = insertRoutine("Push", listOf(bench))
+        val pull = insertRoutine("Pull", listOf(bench))
+        assertEquals(emptyList<WorkoutDraftEntity>(), draftDao.observeAll().first())
+
+        draftDao.save(WorkoutDraftEntity(push, startedAt = 1_000), listOf(set(push, 0, 0, bench, "60", "8")))
+        draftDao.save(WorkoutDraftEntity(pull, startedAt = 2_000), listOf(set(pull, 0, 0, bench, "40", "12")))
+        assertEquals(
+            setOf(push to 1_000L, pull to 2_000L),
+            draftDao.observeAll().first().map { it.routineId to it.startedAt }.toSet(),
+        )
+
+        draftDao.delete(push)
+        assertEquals(listOf(pull), draftDao.observeAll().first().map { it.routineId })
+
+        routineDao.delete(pull)
+        assertEquals(emptyList<WorkoutDraftEntity>(), draftDao.observeAll().first())
     }
 
     @Test

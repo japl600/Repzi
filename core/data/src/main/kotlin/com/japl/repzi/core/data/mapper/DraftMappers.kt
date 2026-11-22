@@ -6,6 +6,7 @@ import com.japl.repzi.core.database.model.WorkoutDraftWithSets
 import com.japl.repzi.core.domain.model.DraftExercise
 import com.japl.repzi.core.domain.model.DraftSet
 import com.japl.repzi.core.domain.model.WorkoutDraft
+import com.japl.repzi.core.domain.model.WorkoutDraftInfo
 import kotlin.time.Instant
 
 internal fun WorkoutDraft.toEntity() = WorkoutDraftEntity(
@@ -27,6 +28,11 @@ internal fun WorkoutDraft.toSetEntities(): List<DraftSetEntity> =
             )
         }
     }
+
+internal fun WorkoutDraftEntity.toInfo() = WorkoutDraftInfo(
+    routineId = routineId,
+    startedAt = Instant.fromEpochMilliseconds(startedAt),
+)
 
 internal fun WorkoutDraftWithSets.toDomain() = WorkoutDraft(
     routineId = draft.routineId,

@@ -7,6 +7,7 @@ import androidx.room.Transaction
 import com.japl.repzi.core.database.model.DraftSetEntity
 import com.japl.repzi.core.database.model.WorkoutDraftEntity
 import com.japl.repzi.core.database.model.WorkoutDraftWithSets
+import kotlinx.coroutines.flow.Flow
 
 // Abstract class instead of interface: @Transaction needs a method with a body.
 @Dao
@@ -15,6 +16,10 @@ abstract class WorkoutDraftDao {
     @Transaction
     @Query("SELECT * FROM workout_drafts WHERE routine_id = :routineId")
     abstract suspend fun getByRoutine(routineId: Long): WorkoutDraftWithSets?
+
+    /** Every draft, without its sets. Room re-runs it when `workout_drafts` changes. */
+    @Query("SELECT * FROM workout_drafts")
+    abstract fun observeAll(): Flow<List<WorkoutDraftEntity>>
 
     /**
      * Replaces the draft of the routine in one transaction: the old rows go first (their sets with them, through

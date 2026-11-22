@@ -1,8 +1,10 @@
 package com.japl.repzi.core.domain.usecase
 
 import com.japl.repzi.core.domain.model.WorkoutDraft
+import com.japl.repzi.core.domain.model.WorkoutDraftInfo
 import com.japl.repzi.core.domain.repository.DraftRepository
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 
@@ -26,6 +28,13 @@ class GetWorkoutDraftUseCase @Inject constructor(
     companion object {
         val MAX_AGE = 6.hours
     }
+}
+
+/** The unfinished workouts that exist, as they change. An old one is still listed: whoever shows it checks its age. */
+class ObserveWorkoutDraftsUseCase @Inject constructor(
+    private val repository: DraftRepository,
+) {
+    operator fun invoke(): Flow<List<WorkoutDraftInfo>> = repository.observeDrafts()
 }
 
 class SaveWorkoutDraftUseCase @Inject constructor(
