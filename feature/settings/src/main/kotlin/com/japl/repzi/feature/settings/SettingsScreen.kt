@@ -73,27 +73,27 @@ fun SettingsRoute(
     // What the phone says about notifications can change while the user is in the system settings: read it again
     // every time the screen comes back.
     var system by remember { mutableStateOf(context.systemNotificationState()) }
-    var permissionDenied by remember { mutableStateOf(false) }
+    var permissionDenied by rememberPermissionDenied()
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         system = context.systemNotificationState()
         if (system.postAllowed) permissionDenied = false
     }
 
     // The switch the user turned on while the permission dialog is open, applied only if they allow it.
-    var pendingEnable by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var pendingSwitch by rememberPendingNotificationSwitch()
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        val enable = pendingEnable
-        pendingEnable = null
+        val switch = pendingSwitch
+        pendingSwitch = null
         system = context.systemNotificationState()
-        if (granted) enable?.invoke() else permissionDenied = true
+        if (granted) switch?.turnOn(viewModel) else permissionDenied = true
     }
 
     // Turning a notification on asks for the permission first (Android 13+); turning it off never does.
-    fun changeNotification(enabled: Boolean, apply: (Boolean) -> Unit) {
+    fun changeNotification(enabled: Boolean, switch: NotificationSwitch, apply: (Boolean) -> Unit) {
         val needsPermission = enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         if (needsPermission) {
-            pendingEnable = { apply(true) }
+            pendingSwitch = switch
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
             apply(enabled)
@@ -111,8 +111,12 @@ fun SettingsRoute(
         onRestVibrationChange = viewModel::onRestVibrationChange,
         onWeightUnitChange = viewModel::onWeightUnitChange,
         hints = hints,
-        onRestNotificationChange = { changeNotification(it, viewModel::onRestNotificationChange) },
-        onInactivityReminderChange = { changeNotification(it, viewModel::onInactivityReminderChange) },
+        onRestNotificationChange = {
+            changeNotification(it, NotificationSwitch.REST, viewModel::onRestNotificationChange)
+        },
+        onInactivityReminderChange = {
+            changeNotification(it, NotificationSwitch.INACTIVITY, viewModel::onInactivityReminderChange)
+        },
         onInactivityDaysChange = viewModel::onInactivityDaysChange,
         onOpenNotificationSettings = {
             val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
