@@ -8,4 +8,6 @@ android {
 
 dependencies {
     implementation(libs.androidx.glance.appwidget)
+
+    androidTestImplementation(libs.androidx.glance.appwidget.testing)
 }
