@@ -4,6 +4,7 @@ import com.japl.repzi.core.data.AppLanguage
 import com.japl.repzi.core.data.ExerciseNames
 import com.japl.repzi.core.data.mapper.toDetail
 import com.japl.repzi.core.data.mapper.toDomain
+import com.japl.repzi.core.data.remappedOnLanguageChange
 import com.japl.repzi.core.database.dao.ExerciseDao
 import com.japl.repzi.core.database.model.ExerciseEntity
 import com.japl.repzi.core.database.model.ExerciseWithNames
@@ -17,7 +18,6 @@ import java.text.Collator
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 /** Room is the single source of truth; once there is a network, it is synced into the local database. */
@@ -35,14 +35,14 @@ internal class OfflineFirstExerciseRepository @Inject constructor(
             dao.observeByMuscleGroup(muscleGroup.name)
         }
         // The shown name depends on the language, so the order is decided here and not by the query.
-        return entities.map { list ->
+        return entities.remappedOnLanguageChange(language) { list ->
             val collator = Collator.getInstance()
             list.map { it.toDomain(names) }.sortedWith(compareBy(collator) { it.name })
         }
     }
 
     override fun observeDetail(id: Long): Flow<ExerciseDetail?> =
-        combine(dao.observeById(id), dao.observeDetailTranslations(id)) { entity, translations ->
+        combine(dao.observeById(id), dao.observeDetailTranslations(id), language.changes) { entity, translations, _ ->
             entity?.let {
                 val translated = translations.map { t -> TranslatedName(t.language, t.name) }
                 it.toDetail(names.nameOf(ExerciseWithNames(it, translated)), translations, language())
