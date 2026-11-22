@@ -25,14 +25,17 @@ internal class ExerciseCatalogSync @Inject constructor(
 ) : CatalogSyncRunner {
 
     override suspend fun invoke(): Int {
-        store.linkBuiltIns()
         val licenses = client.fetchLicenses().associateBy { it.id }
+        var page = client.fetchPage(0)
+        // A linked built-in counts as wger content, and that is what shows the attribution: it is linked only once
+        // something has really come down, never on a run that fails before the first page. It must still happen before
+        // the first write, so the wger copy of a built-in updates it instead of being added next to it.
+        store.linkBuiltIns()
         val versions = store.remoteVersions().toMutableMap()
 
         var written = 0
         var offset = 0
-        do {
-            val page = client.fetchPage(offset)
+        while (true) {
             val changed = page.exercises
                 .mapNotNull { it.toWrite(licenses) }
                 .filter { versions[it.remoteId] != it.updatedAt }
@@ -43,7 +46,9 @@ internal class ExerciseCatalogSync @Inject constructor(
             }
             offset += page.exercises.size
             // An empty page that still claims there is a next one would loop forever.
-        } while (page.hasNext && page.exercises.isNotEmpty())
+            if (!page.hasNext || page.exercises.isEmpty()) break
+            page = client.fetchPage(offset)
+        }
         return written
     }
 

@@ -16,11 +16,33 @@ class ExerciseCatalogSyncTest {
     private fun sync(client: FakeWgerClient) = ExerciseCatalogSync(client, store)
 
     @Test
-    fun linksBuiltInsBeforeDownloading() = runTest {
+    fun linksBuiltInsOnceTheFirstPageIsInHandAndBeforeWritingIt() = runTest {
         sync(FakeWgerClient(listOf(listOf(exercise(1))), events = events))()
 
-        assertEquals("link", events.first())
-        assertTrue(events.indexOf("link") < events.indexOf("page:0"))
+        // Linking has to come before the write, or the wger copy of a built-in would be added next to it.
+        assertTrue(events.indexOf("page:0") < events.indexOf("link"))
+        assertTrue(events.indexOf("link") < events.indexOf("apply:[1]"))
+    }
+
+    @Test
+    fun nothingIsLinkedWhenTheLicensesCannotBeFetched() = runTest {
+        // A built-in counts as wger content, which is what shows the attribution: with nothing downloaded it must not.
+        val client = FakeWgerClient(listOf(listOf(exercise(1))), events = events)
+        client.failLicenses = true
+
+        assertFailsWith<WgerException> { sync(client)() }
+
+        assertTrue("link" !in events)
+    }
+
+    @Test
+    fun nothingIsLinkedWhenTheFirstPageCannotBeFetched() = runTest {
+        val client = FakeWgerClient(listOf(listOf(exercise(1))), events = events)
+        client.failOnPage = 0
+
+        assertFailsWith<WgerException> { sync(client)() }
+
+        assertTrue("link" !in events)
     }
 
     @Test
