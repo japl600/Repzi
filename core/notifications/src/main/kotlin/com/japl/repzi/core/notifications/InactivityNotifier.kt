@@ -18,7 +18,7 @@ internal class NotificationManagerInactivityNotifier @Inject constructor(
 ) : InactivityNotifier {
 
     override fun notify(days: Int): Boolean {
-        if (!gate.canPost()) return false
+        if (!gate.canPost(NotificationChannels.INACTIVITY)) return false
         val notification = Notification.Builder(context, NotificationChannels.INACTIVITY)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.notification_inactivity_title))

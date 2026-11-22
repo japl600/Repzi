@@ -1,11 +1,14 @@
 package com.japl.repzi.core.notifications
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.japl.repzi.core.domain.AppVisibility
 import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.testing.FakeSettingsRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
@@ -78,7 +81,34 @@ class RestReminderNotifierTest {
     }
 
     @Test
+    fun postsNothingWhenItsOwnChannelIsSilenced() = runBlocking {
+        // The gate is asked about the channel this notification would go to, not about notifications in general.
+        val gate = NotificationGate { channelId -> channelId != NotificationChannels.REST }
+
+        notifier(FakeSettingsRepository(initialRestNotification = true), gate = gate).onRestEnded()
+
+        assertTrue(support.noneWithId(RestReminderNotifier.NOTIFICATION_ID))
+    }
+
+    @Test
     fun theSystemGateAllowsNotificationsOnceThePermissionIsGranted() {
-        assertTrue(SystemNotificationGate(support.context).canPost())
+        assertTrue(SystemNotificationGate(support.context).canPost(NotificationChannels.REST))
+    }
+
+    @Test
+    fun theSystemGateRefusesASilencedChannel() {
+        // A channel created with importance NONE is what the user gets by switching a channel off in the settings.
+        val silenced = NotificationChannel("silenced_test", "Silenced", NotificationManager.IMPORTANCE_NONE)
+        support.manager.createNotificationChannel(silenced)
+        try {
+            assertFalse(SystemNotificationGate(support.context).canPost("silenced_test"))
+        } finally {
+            support.manager.deleteNotificationChannel("silenced_test")
+        }
+    }
+
+    @Test
+    fun theSystemGateRefusesAChannelThatDoesNotExist() {
+        assertFalse(SystemNotificationGate(support.context).canPost("no_such_channel"))
     }
 }

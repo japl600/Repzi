@@ -37,7 +37,7 @@ class InactivityNotifierTest {
         assertTrue(notifier.notify(5))
 
         val posted = assertNotNull(support.activeWithId(NotificationManagerInactivityNotifier.NOTIFICATION_ID))
-        assertEquals(NotificationChannels.INACTIVITY, posted.notification.channelId)
+        assertEquals(NotificationChannels.INACTIVITY,posted.notification.channelId)
         assertEquals(expectedText(5), posted.notification.extras.getString("android.text"))
         assertEquals(
             context.getString(R.string.notification_inactivity_title),
@@ -54,6 +54,18 @@ class InactivityNotifierTest {
     @Test
     fun returnsFalseAndPostsNothingWhenNotificationsAreBlocked() {
         val notifier = NotificationManagerInactivityNotifier(context) { false }
+
+        assertFalse(notifier.notify(5))
+
+        assertTrue(support.noneWithId(NotificationManagerInactivityNotifier.NOTIFICATION_ID))
+    }
+
+    @Test
+    fun returnsFalseWhenItsOwnChannelIsSilencedSoTheNoticeIsNotRecordedAsSent() {
+        // Silenced channel: the notice would be posted and never seen, and recording it would hide it for good.
+        val notifier = NotificationManagerInactivityNotifier(context) { channelId ->
+            channelId != NotificationChannels.INACTIVITY
+        }
 
         assertFalse(notifier.notify(5))
 

@@ -24,7 +24,7 @@ internal class RestReminderNotifier @Inject constructor(
         if (!observeRestNotification().first()) return
         // On screen the countdown and the buzz already say it.
         if (visibility.isVisible()) return
-        if (!gate.canPost()) return
+        if (!gate.canPost(NotificationChannels.REST)) return
 
         val notification = Notification.Builder(context, NotificationChannels.REST)
             .setSmallIcon(R.drawable.ic_notification)
