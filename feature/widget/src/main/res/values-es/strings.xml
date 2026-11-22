@@ -13,4 +13,8 @@
     <string name="widget_start">Empezar %1$s</string>
     <string name="widget_resume">Reanudar %1$s</string>
     <string name="widget_create_routine">Crear rutina</string>
+    <string name="widget_label">Repzi</string>
+    <string name="widget_preview_subtitle">Push · Ayer</string>
+    <string name="widget_preview_summary">52 min · 4200 kg</string>
+    <string name="widget_preview_button">Empezar Pull</string>
 </resources>

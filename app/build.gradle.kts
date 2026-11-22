@@ -46,6 +46,7 @@ dependencies {
     implementation(projects.feature.history)
     implementation(projects.feature.progress)
     implementation(projects.feature.settings)
+    implementation(projects.feature.widget)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)

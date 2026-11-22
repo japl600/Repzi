@@ -5,6 +5,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.japl.repzi.core.domain.CatalogSyncScheduler
 import com.japl.repzi.core.notifications.NotificationsSetup
+import com.japl.repzi.feature.widget.HomeWidgetUpdater
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -17,6 +18,8 @@ class RepziApplication : Application(), Configuration.Provider {
 
     @Inject lateinit var notificationsSetup: NotificationsSetup
 
+    @Inject lateinit var homeWidgetUpdater: HomeWidgetUpdater
+
     // WorkManager starts on demand with this configuration (its default initializer is removed in the manifest), so
     // workers can be built by Hilt.
     override val workManagerConfiguration: Configuration
@@ -26,5 +29,6 @@ class RepziApplication : Application(), Configuration.Provider {
         super.onCreate()
         catalogSyncScheduler.schedule()
         notificationsSetup.start()
+        homeWidgetUpdater.start()
     }
 }

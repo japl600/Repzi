@@ -13,4 +13,8 @@
     <string name="widget_start">Start %1$s</string>
     <string name="widget_resume">Resume %1$s</string>
     <string name="widget_create_routine">Create a routine</string>
+    <string name="widget_label">Repzi</string>
+    <string name="widget_preview_subtitle">Push · Yesterday</string>
+    <string name="widget_preview_summary">52 min · 4200 kg</string>
+    <string name="widget_preview_button">Start Pull</string>
 </resources>

@@ -2,6 +2,7 @@ package com.japl.repzi.navigation
 
 import android.content.Intent
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
@@ -14,7 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+
 import androidx.compose.ui.res.stringResource
 import androidx.core.util.Consumer
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -91,7 +92,7 @@ fun RepziNavHost() {
  */
 @Composable
 private fun DeepLinksFromNewIntents(navController: NavHostController) {
-    val activity = LocalContext.current as? ComponentActivity ?: return
+    val activity = LocalActivity.current as? ComponentActivity ?: return
     DisposableEffect(activity, navController) {
         val listener = Consumer<Intent> { intent -> navController.handleDeepLink(intent) }
         activity.addOnNewIntentListener(listener)
