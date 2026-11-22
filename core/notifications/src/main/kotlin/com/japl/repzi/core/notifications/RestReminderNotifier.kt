@@ -3,10 +3,12 @@ package com.japl.repzi.core.notifications
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
+import android.util.Log
 import com.japl.repzi.core.domain.AppVisibility
 import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.first
 
 /**
@@ -20,7 +22,21 @@ internal class RestReminderNotifier @Inject constructor(
     private val gate: NotificationGate,
 ) {
 
+    /**
+     * The reminder is a convenience, so a failure (the setting cannot be read, the system refuses the notice) ends
+     * here: the receiver runs this on a scope nobody watches, and an exception would take the whole process down.
+     */
     suspend fun onRestEnded() {
+        try {
+            postIfDue()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "The rest notice could not be posted", e)
+        }
+    }
+
+    private suspend fun postIfDue() {
         if (!observeRestNotification().first()) return
         // On screen the countdown and the buzz already say it.
         if (visibility.isVisible()) return
@@ -39,5 +55,6 @@ internal class RestReminderNotifier @Inject constructor(
 
     companion object {
         const val NOTIFICATION_ID = 1
+        private const val TAG = "RestReminderNotifier"
     }
 }

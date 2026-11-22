@@ -4,13 +4,17 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.japl.repzi.core.domain.AppVisibility
+import com.japl.repzi.core.domain.repository.SettingsRepository
 import com.japl.repzi.core.domain.usecase.ObserveRestNotificationUseCase
 import com.japl.repzi.core.testing.FakeSettingsRepository
+import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -84,6 +88,35 @@ class RestReminderNotifierTest {
     fun postsNothingWhenItsOwnChannelIsSilenced() = runBlocking {
         // The gate is asked about the channel this notification would go to, not about notifications in general.
         val gate = NotificationGate { channelId -> channelId != NotificationChannels.REST }
+
+        notifier(FakeSettingsRepository(initialRestNotification = true), gate = gate).onRestEnded()
+
+        assertTrue(support.noneWithId(RestReminderNotifier.NOTIFICATION_ID))
+    }
+
+    /** A setting that cannot be read, as when the DataStore file is damaged or the disk fails. */
+    private class UnreadableSettings : SettingsRepository by FakeSettingsRepository() {
+        override val restNotification: Flow<Boolean> = flow { throw IOException("the settings file cannot be read") }
+    }
+
+    @Test
+    fun aFailureReadingTheSettingIsSwallowedInsteadOfCrashingTheApp() = runBlocking {
+        val notifier = RestReminderNotifier(
+            context = support.context,
+            observeRestNotification = ObserveRestNotificationUseCase(UnreadableSettings()),
+            visibility = AppVisibility { false },
+            gate = SystemNotificationGate(support.context),
+        )
+
+        // The receiver runs this on a scope nobody watches: an exception here would take the whole process down.
+        notifier.onRestEnded()
+
+        assertTrue(support.noneWithId(RestReminderNotifier.NOTIFICATION_ID))
+    }
+
+    @Test
+    fun aFailurePostingTheNoticeIsSwallowedToo() = runBlocking {
+        val gate = NotificationGate { throw SecurityException("the system refused the notification") }
 
         notifier(FakeSettingsRepository(initialRestNotification = true), gate = gate).onRestEnded()
 
