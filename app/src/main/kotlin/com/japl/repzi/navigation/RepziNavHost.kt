@@ -91,7 +91,7 @@ fun RepziNavHost() {
  * later ones on.
  */
 @Composable
-private fun DeepLinksFromNewIntents(navController: NavHostController) {
+internal fun DeepLinksFromNewIntents(navController: NavHostController) {
     val activity = LocalActivity.current as? ComponentActivity ?: return
     DisposableEffect(activity, navController) {
         val listener = Consumer<Intent> { intent -> navController.handleDeepLink(intent) }

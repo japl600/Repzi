@@ -12,6 +12,7 @@ android {
         applicationId = "com.japl.repzi"
         versionCode = 1
         versionName = "0.1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     // Builds res/xml/locales_config.xml from the values-XX folders, so the system offers a per-app language
@@ -53,4 +54,11 @@ dependencies {
     implementation(libs.aboutlibraries.compose.m3)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
+
+    // The compose plugin adds the Compose test rule; these run it on a device.
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    // Compose pulls in an older Espresso that crashes on recent Android versions (InputManager.getInstance).
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.kotlin.test.junit)
 }
