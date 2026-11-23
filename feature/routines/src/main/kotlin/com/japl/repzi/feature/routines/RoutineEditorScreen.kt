@@ -1,6 +1,5 @@
 package com.japl.repzi.feature.routines
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -216,7 +217,7 @@ internal fun RoutineEditorScreen(
     if (showPicker) {
         ExercisePickerSheet(
             exercises = availableExercises,
-            selected = uiState.exercises.map { it.exercise },
+            selectedIds = uiState.exercises.map { it.exercise.id }.toSet(),
             onToggle = onExerciseToggled,
             onDismiss = { showPicker = false },
         )
@@ -271,7 +272,7 @@ private fun RestChip(
 @Composable
 private fun ExercisePickerSheet(
     exercises: List<Exercise>,
-    selected: List<Exercise>,
+    selectedIds: Set<Long>,
     onToggle: (Exercise) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -282,11 +283,19 @@ private fun ExercisePickerSheet(
     ) {
         LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
             items(exercises, key = { it.id }) { exercise ->
+                // By id, like the view model's toggle: the same exercise can differ in other fields (its name follows
+                // the app language), and then a whole-object comparison would show it unticked.
+                val checked = exercise.id in selectedIds
                 ListItem(
-                    modifier = Modifier.clickable { onToggle(exercise) },
+                    // The whole row is one checkbox for accessibility, so a screen reader announces its state; the
+                    // visible Checkbox is display-only.
+                    modifier = Modifier.toggleable(
+                        value = checked,
+                        role = Role.Checkbox,
+                        onValueChange = { onToggle(exercise) },
+                    ),
                     headlineContent = { Text(exercise.name) },
-                    // The row handles the click, so the checkbox is display-only.
-                    trailingContent = { Checkbox(checked = exercise in selected, onCheckedChange = null) },
+                    trailingContent = { Checkbox(checked = checked, onCheckedChange = null) },
                 )
             }
         }

@@ -5,6 +5,8 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -216,6 +218,19 @@ class RoutineEditorScreenTest {
 
         assertEquals(emptyList(), restChanges)
         rule.onNodeWithText(string(UiR.string.rest_picker_title)).assertDoesNotExist()
+    }
+
+    @Test
+    fun thePickerTicksTheExercisesInTheRoutineByIdNotByEveryField() {
+        // The routine holds squat under another name (the app language changed while the editor was open), so the
+        // two copies are not equal; the picker must still tick it, as the view model matches by id when toggling.
+        val renamed = squat.copy(name = "Squat")
+        setScreen(uiState = loaded.copy(exercises = listOf(RoutineExercise(renamed), RoutineExercise(bench))))
+
+        rule.onNodeWithText(string(R.string.editor_add_exercises)).performClick()
+
+        rule.onNodeWithText("Sentadilla").assertIsOn()
+        rule.onNodeWithText("Remo").assertIsOff()
     }
 
     @Test
