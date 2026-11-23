@@ -31,7 +31,7 @@ The workout data shown is sample data.
 - **History and progress.** Finished workouts with duration and volume, and a per-exercise chart (drawn on a Canvas) of max weight, estimated 1RM, volume or reps over 1, 3 or 6 months.
 - **Settings.** Language, weight unit (kg / lb), rest vibration, notifications, open-source licenses, source code link.
 - **Notifications.** A notice when a rest ends and a reminder after a few days without training (see below).
-- **Home-screen widget.** A 2x2 Jetpack Glance widget shows your last workout and one button: it starts the routine that is up next (the one after your last, in the list's order), or resumes a workout you left unfinished. The button opens the workout through a deep link.
+- **Home-screen widget.** A 2x1 Jetpack Glance widget with a line about your workouts (the last one and how long ago, or "name - In progress") and one button: it starts the routine that is up next (the one after your last, in the list's order), or resumes a workout you left unfinished. The button opens the workout through a deep link.
 
 ## Technical highlights
 
@@ -81,7 +81,7 @@ feature/
   history                finished workouts
   progress               per-exercise charts
   settings               preferences (Preferences DataStore), licenses, about
-  widget                 the 2x2 Glance home-screen widget, its state rule and the updater
+  widget                 the 2x1 Glance home-screen widget, its state rule and the updater
 build-logic/convention   convention plugins (repzi.android.*, repzi.jvm.library)
 ```
 
