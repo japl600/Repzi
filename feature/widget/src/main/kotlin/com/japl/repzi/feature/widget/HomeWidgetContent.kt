@@ -56,7 +56,7 @@ fun HomeWidgetContent(
     ) {
         Text(texts.title, style = TextStyle(color = ColorProvider(Slate), fontSize = 12.sp), maxLines = 1)
         texts.subtitle?.let {
-            Text(it, style = TextStyle(color = ColorProvider(Mist), fontSize = 14.sp, fontWeight = FontWeight.Medium), maxLines = 1)
+            Text(it, style = TextStyle(color = ColorProvider(Mist), fontSize = 14.sp, fontWeight = FontWeight.Medium), maxLines = 2)
         }
         texts.summary?.let {
             Text(it, style = TextStyle(color = ColorProvider(Slate), fontSize = 12.sp), maxLines = 1)
@@ -86,6 +86,7 @@ private fun ActionButton(text: String, showPlay: Boolean, onClick: Action) {
             Image(ImageProvider(R.drawable.ic_widget_play), contentDescription = null, modifier = GlanceModifier.size(18.dp))
             Spacer(GlanceModifier.width(6.dp))
         }
-        Text(text, style = TextStyle(color = ColorProvider(Navy), fontSize = 14.sp, fontWeight = FontWeight.Medium), maxLines = 1)
+        // Two lines: the routine's name is the point of the button, and a one-line label cuts it ("Empezar E…").
+        Text(text, style = TextStyle(color = ColorProvider(Navy), fontSize = 14.sp, fontWeight = FontWeight.Medium), maxLines = 2)
     }
 }
