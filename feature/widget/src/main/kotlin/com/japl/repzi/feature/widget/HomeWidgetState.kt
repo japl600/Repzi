@@ -1,13 +1,11 @@
 package com.japl.repzi.feature.widget
 
 import com.japl.repzi.core.domain.model.Routine
-import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.model.WorkoutDraftInfo
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
@@ -15,7 +13,6 @@ import kotlin.time.toJavaInstant
 data class HomeWidgetState(
     val lastWorkout: LastWorkout?,
     val target: WidgetTarget,
-    val weightUnit: WeightUnit,
     /**
      * The app language the state was computed in. Nothing reads it: it is here so that a language change makes the
      * state differ from the last one, which is what gets the widget redrawn (its texts are chosen while drawing).
@@ -26,8 +23,6 @@ data class HomeWidgetState(
 data class LastWorkout(
     val routineName: String,
     val finishedAt: Instant,
-    val duration: Duration,
-    val volumeKg: Double,
 )
 
 /** What the widget's button does. */
@@ -55,12 +50,11 @@ fun homeWidgetState(
     sessions: List<WorkoutSession>,
     routines: List<Routine>,
     drafts: List<WorkoutDraftInfo>,
-    weightUnit: WeightUnit,
     now: Instant,
 ): HomeWidgetState {
     val last = sessions.firstOrNull()
-    val lastWorkout = last?.let { LastWorkout(it.routineName, it.finishedAt, it.duration, it.totalVolumeKg) }
-    return HomeWidgetState(lastWorkout, target(last, routines, drafts, now), weightUnit)
+    val lastWorkout = last?.let { LastWorkout(it.routineName, it.finishedAt) }
+    return HomeWidgetState(lastWorkout, target(last, routines, drafts, now))
 }
 
 private fun target(

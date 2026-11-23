@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="widget_description">Your last workout and the routine that is up next</string>
-    <string name="widget_last_workout">Last workout</string>
     <string name="widget_no_workouts">No workouts yet</string>
     <string name="widget_today">Today</string>
     <string name="widget_yesterday">Yesterday</string>
@@ -9,12 +8,10 @@
         <item quantity="one">%d day ago</item>
         <item quantity="other">%d days ago</item>
     </plurals>
-    <string name="widget_minutes">%d min</string>
-    <string name="widget_start">Start %1$s</string>
-    <string name="widget_resume">Resume %1$s</string>
+    <string name="widget_start">Start</string>
+    <string name="widget_in_progress">%1$s - In progress</string>
     <string name="widget_create_routine">Create a routine</string>
     <string name="widget_label">Repzi</string>
     <string name="widget_preview_subtitle">Push · Yesterday</string>
-    <string name="widget_preview_summary">52 min · 4200 kg</string>
-    <string name="widget_preview_button">Start Pull</string>
+    <string name="widget_preview_button">Start</string>
 </resources>

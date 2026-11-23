@@ -5,14 +5,12 @@ import com.japl.repzi.core.domain.model.WorkoutDraft
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.domain.usecase.ObserveRoutinesUseCase
 import com.japl.repzi.core.domain.usecase.ObserveSessionsUseCase
-import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import com.japl.repzi.core.domain.usecase.ObserveWorkoutDraftsUseCase
 import com.japl.repzi.core.domain.model.DraftExercise
 import com.japl.repzi.core.domain.model.DraftSet
 import com.japl.repzi.core.testing.FakeDraftRepository
 import com.japl.repzi.core.testing.FakeRoutineRepository
 import com.japl.repzi.core.testing.FakeSessionRepository
-import com.japl.repzi.core.testing.FakeSettingsRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Clock
@@ -32,7 +30,6 @@ class HomeWidgetUpdaterTest {
 
     private val sessions = FakeSessionRepository()
     private val drafts = FakeDraftRepository()
-    private val settings = FakeSettingsRepository()
     private val routines = FakeRoutineRepository(listOf(Routine(id = 1, name = "Push", exercises = emptyList())))
 
     private class CountingRefresher(private val failFirst: Boolean = false) : WidgetRefresher {
@@ -48,7 +45,6 @@ class HomeWidgetUpdaterTest {
             ObserveSessionsUseCase(sessions),
             ObserveRoutinesUseCase(routines),
             ObserveWorkoutDraftsUseCase(drafts),
-            ObserveWeightUnitUseCase(settings),
             clock,
             WidgetLanguage { "en" },
         ),
@@ -87,7 +83,7 @@ class HomeWidgetUpdaterTest {
         val refresher = CountingRefresher()
         updater(refresher).start(backgroundScope)
 
-        drafts.saveDraft(draft(weight = "60")) // "Resume Push" appears: a visible change
+        drafts.saveDraft(draft(weight = "60")) // the widget turns to "in progress": a visible change
         drafts.saveDraft(draft(weight = "62.5")) // typing in the workout: nothing the widget shows
         drafts.saveDraft(draft(weight = "65"))
 

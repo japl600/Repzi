@@ -28,12 +28,11 @@ import androidx.glance.unit.ColorProvider
 
 private val Navy = Color(0xFF0E1B2C)
 private val Teal = Color(0xFF2DD4BF)
-private val Slate = Color(0xFF94A3B8)
 private val Mist = Color(0xFFCBD5E1)
 
 /**
- * The 2x2 widget: the last workout on top and the button below. Tapping anywhere but the button opens the app; the
- * button starts or resumes a routine, or opens the app when there is no routine yet.
+ * The 2x1 widget: a line about the workouts on top and the button below. Tapping anywhere but the button opens the
+ * app; the button starts or resumes a routine, or opens the app when there is no routine yet.
  */
 @Composable
 fun HomeWidgetContent(
@@ -58,14 +57,9 @@ fun HomeWidgetContent(
         // the bottom left a big hole in the middle.
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(texts.title, style = TextStyle(color = ColorProvider(Slate), fontSize = 12.sp), maxLines = 1)
-        texts.subtitle?.let {
-            Text(it, style = TextStyle(color = ColorProvider(Mist), fontSize = 14.sp, fontWeight = FontWeight.Medium), maxLines = 2)
-        }
-        texts.summary?.let {
-            Text(it, style = TextStyle(color = ColorProvider(Slate), fontSize = 12.sp), maxLines = 1)
-        }
-        Spacer(GlanceModifier.height(12.dp))
+        // One line about the workouts, then the button.
+        Text(texts.line, style = TextStyle(color = ColorProvider(Mist), fontSize = 12.sp), maxLines = 1)
+        Spacer(GlanceModifier.height(6.dp))
         ActionButton(texts.button, showPlay = target !is WidgetTarget.NoRoutines, onClick = buttonAction)
     }
 }
@@ -90,7 +84,7 @@ private fun ActionButton(text: String, showPlay: Boolean, onClick: Action) {
             Image(ImageProvider(R.drawable.ic_widget_play), contentDescription = null, modifier = GlanceModifier.size(18.dp))
             Spacer(GlanceModifier.width(6.dp))
         }
-        // Two lines: the routine's name is the point of the button, and a one-line label cuts it ("Empezar E…").
+        // Up to two lines, so a longer label in another language is not cut.
         Text(text, style = TextStyle(color = ColorProvider(Navy), fontSize = 14.sp, fontWeight = FontWeight.Medium), maxLines = 2)
     }
 }

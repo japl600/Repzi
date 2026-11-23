@@ -2,10 +2,8 @@ package com.japl.repzi.feature.widget
 
 import com.japl.repzi.core.domain.model.Exercise
 import com.japl.repzi.core.domain.model.LoggedExercise
-import com.japl.repzi.core.domain.model.LoggedSet
 import com.japl.repzi.core.domain.model.MuscleGroup
 import com.japl.repzi.core.domain.model.Routine
-import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.model.WorkoutDraftInfo
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
@@ -27,21 +25,19 @@ class HomeWidgetStateTest {
         routineName: String,
         finishedAt: Instant = now - 48.hours,
         duration: kotlin.time.Duration = 52.minutes,
-        sets: List<LoggedSet> = emptyList(),
     ) = WorkoutSession(
         id = 1,
         routineName = routineName,
         startedAt = finishedAt - duration,
         finishedAt = finishedAt,
-        exercises = listOf(LoggedExercise(Exercise(1, "Bench press", MuscleGroup.CHEST, isCustom = false), sets)),
+        exercises = listOf(LoggedExercise(Exercise(1, "Bench press", MuscleGroup.CHEST, isCustom = false), emptyList())),
     )
 
     private fun state(
         sessions: List<WorkoutSession> = emptyList(),
         routines: List<Routine> = emptyList(),
         drafts: List<WorkoutDraftInfo> = emptyList(),
-        weightUnit: WeightUnit = WeightUnit.KG,
-    ) = homeWidgetState(sessions, routines, drafts, weightUnit, now)
+    ) = homeWidgetState(sessions, routines, drafts, now)
 
     private val legs = routine(1, "Legs")
     private val pull = routine(2, "Pull")
@@ -141,15 +137,10 @@ class HomeWidgetStateTest {
     }
 
     @Test
-    fun theLastWorkoutCarriesItsNumbersAndTheUnitIsKept() {
-        val sets = listOf(LoggedSet(reps = 5, weightKg = 100.0), LoggedSet(reps = 8, weightKg = 50.0))
+    fun theLastWorkoutCarriesItsRoutineNameAndWhenItEnded() {
+        val result = state(listOf(session("Push")), listOf(push))
 
-        val result = state(listOf(session("Push", sets = sets)), listOf(push), weightUnit = WeightUnit.LB)
-
-        assertEquals(WeightUnit.LB, result.weightUnit)
-        assertEquals(900.0, result.lastWorkout?.volumeKg)
-        assertEquals(52.minutes, result.lastWorkout?.duration)
-        assertEquals(now - 48.hours, result.lastWorkout?.finishedAt)
+        assertEquals(LastWorkout("Push", now - 48.hours), result.lastWorkout)
     }
 
     @Test

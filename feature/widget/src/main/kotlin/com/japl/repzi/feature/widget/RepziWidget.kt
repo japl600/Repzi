@@ -13,7 +13,6 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
-import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.ui.navigation.sessionDeepLink
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -80,6 +79,6 @@ class RepziWidget : GlanceAppWidget() {
         const val TAG = "RepziWidget"
 
         // What the home screen draws when the real state cannot be read: the empty widget, which opens the app.
-        val EMPTY_STATE = HomeWidgetState(lastWorkout = null, target = WidgetTarget.NoRoutines, weightUnit = WeightUnit.KG)
+        val EMPTY_STATE = HomeWidgetState(lastWorkout = null, target = WidgetTarget.NoRoutines)
     }
 }

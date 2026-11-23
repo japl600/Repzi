@@ -2,18 +2,15 @@ package com.japl.repzi.feature.widget
 
 import app.cash.turbine.test
 import com.japl.repzi.core.domain.model.Routine
-import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.model.WorkoutDraft
 import com.japl.repzi.core.domain.model.WorkoutSession
 import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRoutinesUseCase
 import com.japl.repzi.core.domain.usecase.ObserveSessionsUseCase
-import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
 import com.japl.repzi.core.domain.usecase.ObserveWorkoutDraftsUseCase
 import com.japl.repzi.core.testing.FakeDraftRepository
 import com.japl.repzi.core.testing.FakeRoutineRepository
 import com.japl.repzi.core.testing.FakeSessionRepository
-import com.japl.repzi.core.testing.FakeSettingsRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -37,7 +34,6 @@ class ObserveHomeWidgetStateTest {
     private val sessions = FakeSessionRepository()
     private val routines = FakeRoutineRepository(listOf(pull, push))
     private val drafts = FakeDraftRepository()
-    private val settings = FakeSettingsRepository()
 
     private var language = "en"
 
@@ -45,7 +41,6 @@ class ObserveHomeWidgetStateTest {
         ObserveSessionsUseCase(sessions),
         ObserveRoutinesUseCase(routines),
         ObserveWorkoutDraftsUseCase(drafts),
-        ObserveWeightUnitUseCase(settings),
         clock,
         WidgetLanguage { language },
     )
@@ -68,9 +63,6 @@ class ObserveHomeWidgetStateTest {
             drafts.deleteDraft(2)
             assertEquals(WidgetTarget.Start(1, "Push"), awaitItem().target)
 
-            settings.setWeightUnit(WeightUnit.LB)
-            assertEquals(WeightUnit.LB, awaitItem().weightUnit)
-
             routines.deleteRoutine(1)
             assertEquals(WidgetTarget.Start(2, "Pull"), awaitItem().target)
         }
@@ -84,7 +76,7 @@ class ObserveHomeWidgetStateTest {
             // The repositories emit again when the app language changes; the state must then differ from the last one,
             // or the widget would not be redrawn and would keep the old language until its next periodic update.
             language = "es"
-            settings.setWeightUnit(WeightUnit.LB)
+            routines.saveRoutine(Routine(id = 3, name = "Zz", exercises = emptyList()))
             assertEquals("es", awaitItem().language)
         }
     }
