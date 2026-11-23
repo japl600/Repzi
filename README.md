@@ -40,7 +40,7 @@ The workout data shown is sample data.
 - **Process death and rotation.** The workout draft lives in Room, not in memory. Pending permission requests and dialogs use `rememberSaveable`, and there are tests that recreate the activity.
 - **Correct time-based work.** The rest-over notice is an `AlarmManager` alarm (exact when allowed, approximate otherwise) so it arrives with the screen off. The inactivity check is a daily WorkManager job with a rule that sends one notice per lapse.
 - **Data you can trust.** Weights are always stored in kilograms and only converted when typed or shown, so switching units never touches the data. Room migrations (schema v1 to v7) are exported and tested. The wger client skips one malformed record instead of dropping the whole page.
-- **A widget that stays correct.** An app-side observer redraws it only when what it shows changes (typing in a workout rewrites the draft all the time, but the widget only cares that one exists), and the state is collected inside the widget's content, because Glance only recomposes an open session and does not run the setup code again. The rule that picks the routine is a pure function with unit tests.
+- **A widget that stays correct.** An app-side observer redraws it only when what it shows changes (typing in a workout rewrites the draft all the time, but the widget only cares that one exists), and the state is collected inside the widget's content, because Glance only recomposes an open session and does not run the setup code again. It also redraws when the app language changes and when an unfinished workout gets too old to resume, two things that never touch the database. The rule that picks the routine is a pure function with unit tests.
 - **Localization.** `values-es` in every module; built-in exercises are stored with a stable key and translated when shown, so their names follow the app language, even when it changes while the app is open.
 - **Build.** Gradle convention plugins in `build-logic`, a version catalog, and a CI that runs unit tests and the Compose and Room tests on an emulator.
 
@@ -93,7 +93,7 @@ Kotlin, Coroutines and Flow, Jetpack Compose (Material 3, own teal/navy palette,
 
 ## Testing
 
-About 330 unit tests (use cases, view models, reducers, mappers, the widget's rule and updater, the wger client against a mock server) and about 200 instrumented tests (Compose screens, Glance composition, Room DAOs and migrations), TDD throughout. CI runs both on every push; the instrumented job runs on a small-screen emulator, which catches layouts that only fit on a big phone.
+About 340 unit tests (use cases, view models, reducers, mappers, the widget's rule and updater, the wger client against a mock server) and about 210 instrumented tests (Compose screens, Glance composition, deep-link navigation, alarms registered in the system, Room DAOs and migrations), TDD throughout. CI runs both on every push; the instrumented job runs on a small-screen emulator, which catches layouts that only fit on a big phone.
 
 ## Data and licenses
 
@@ -105,7 +105,7 @@ Open-source libraries are listed in the app under Settings, Licenses.
 
 Both are optional and off by default; the Android 13+ permission is asked when a switch is turned on, not at launch.
 
-- **Rest over.** Ticking a set sets an `AlarmManager` alarm for the end of the rest, so the notification arrives with the screen off or the app minimized, and the alarm survives the app being swiped away on stock Android. It is exact when the user allows exact alarms and approximate otherwise (Settings says so). It is not posted while the app is on screen, and some manufacturers' battery savers can still drop alarms.
+- **Rest over.** Ticking a set sets an `AlarmManager` alarm for the end of the rest, so the notification arrives with the screen off or the app minimized, and the alarm survives the app being swiped away on stock Android. It is exact when the user allows exact alarms and approximate otherwise (Settings says so); if the user allows them in the middle of a rest, that rest's alarm is set again as exact. It is not posted while the app is on screen, and some manufacturers' battery savers can still drop alarms.
 - **Inactivity reminder.** A daily WorkManager check (around 18:00) notifies once when the chosen number of days (1 to 14, default 3) has passed since the last finished workout. It sends one notice per lapse and nothing before the first workout.
 
 ## Getting started
@@ -118,4 +118,4 @@ Both are optional and off by default; the Android 13+ permission is asked when a
 
 - **Done:** exercise library, custom and predefined routines, workout logging with a rest timer, history, progress charts, search, remote catalog with background sync, notifications, English and Spanish, kg / lb, a home-screen widget.
 - **Next:** a second widget with the week's summary (workouts per day and volume against last week).
-- **Later:** a widget that redraws as soon as the app language changes (today it follows on its next update), a foreground service with a live rest countdown in the notification (evaluated, not built), Baseline Profiles and Macrobenchmark with measured build and startup times, screenshot tests, migrating `core:domain` and `core:data` to Kotlin Multiplatform.
+- **Later:** a foreground service with a live rest countdown in the notification (evaluated, not built), Baseline Profiles and Macrobenchmark with measured build and startup times, screenshot tests, migrating `core:domain` and `core:data` to Kotlin Multiplatform.
