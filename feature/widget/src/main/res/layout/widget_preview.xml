@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_preview_background"
+    android:gravity="center_vertical"
     android:orientation="vertical"
     android:padding="12dp">
 
@@ -27,11 +28,10 @@
         android:textColor="#94A3B8"
         android:textSize="12sp" />
 
-    <!-- A filler: RemoteViews (and so widget previews) only inflate a short list of views, and Space is not on it. -->
+    <!-- A fixed gap, like the widget's: RemoteViews (and so widget previews) only inflate a short list of views, and Space is not on it. -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="12dp" />
 
     <TextView
         android:layout_width="match_parent"

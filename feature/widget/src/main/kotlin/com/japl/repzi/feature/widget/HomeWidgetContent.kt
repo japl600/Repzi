@@ -17,6 +17,7 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
@@ -53,6 +54,9 @@ fun HomeWidgetContent(
             .cornerRadius(20.dp)
             .padding(12.dp)
             .clickable(openApp),
+        // The cell is taller than the content, so the content is centered: a spacer that stretched to push the button to
+        // the bottom left a big hole in the middle.
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(texts.title, style = TextStyle(color = ColorProvider(Slate), fontSize = 12.sp), maxLines = 1)
         texts.subtitle?.let {
@@ -61,7 +65,7 @@ fun HomeWidgetContent(
         texts.summary?.let {
             Text(it, style = TextStyle(color = ColorProvider(Slate), fontSize = 12.sp), maxLines = 1)
         }
-        Spacer(GlanceModifier.defaultWeight())
+        Spacer(GlanceModifier.height(12.dp))
         ActionButton(texts.button, showPlay = target !is WidgetTarget.NoRoutines, onClick = buttonAction)
     }
 }
