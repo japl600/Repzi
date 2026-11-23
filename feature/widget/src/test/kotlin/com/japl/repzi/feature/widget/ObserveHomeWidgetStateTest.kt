@@ -5,6 +5,7 @@ import com.japl.repzi.core.domain.model.Routine
 import com.japl.repzi.core.domain.model.WeightUnit
 import com.japl.repzi.core.domain.model.WorkoutDraft
 import com.japl.repzi.core.domain.model.WorkoutSession
+import com.japl.repzi.core.domain.usecase.GetWorkoutDraftUseCase
 import com.japl.repzi.core.domain.usecase.ObserveRoutinesUseCase
 import com.japl.repzi.core.domain.usecase.ObserveSessionsUseCase
 import com.japl.repzi.core.domain.usecase.ObserveWeightUnitUseCase
@@ -15,8 +16,11 @@ import com.japl.repzi.core.testing.FakeSessionRepository
 import com.japl.repzi.core.testing.FakeSettingsRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
 
@@ -35,12 +39,15 @@ class ObserveHomeWidgetStateTest {
     private val drafts = FakeDraftRepository()
     private val settings = FakeSettingsRepository()
 
-    private fun observe() = ObserveHomeWidgetState(
+    private var language = "en"
+
+    private fun observe(clock: Clock = this.clock) = ObserveHomeWidgetState(
         ObserveSessionsUseCase(sessions),
         ObserveRoutinesUseCase(routines),
         ObserveWorkoutDraftsUseCase(drafts),
         ObserveWeightUnitUseCase(settings),
         clock,
+        WidgetLanguage { language },
     )
 
     @Test
@@ -66,6 +73,39 @@ class ObserveHomeWidgetStateTest {
 
             routines.deleteRoutine(1)
             assertEquals(WidgetTarget.Start(2, "Pull"), awaitItem().target)
+        }
+    }
+
+    @Test
+    fun theStateCarriesTheLanguageItWasComputedIn() = runTest {
+        observe()().test {
+            assertEquals("en", awaitItem().language)
+
+            // The repositories emit again when the app language changes; the state must then differ from the last one,
+            // or the widget would not be redrawn and would keep the old language until its next periodic update.
+            language = "es"
+            settings.setWeightUnit(WeightUnit.LB)
+            assertEquals("es", awaitItem().language)
+        }
+    }
+
+    @Test
+    fun aDraftThatExpiresWhileTheWidgetIsShownStopsBeingResumed() = runTest {
+        val start = now
+        val virtualClock = object : Clock {
+            override fun now() = start + testScheduler.currentTime.milliseconds
+        }
+        val expiresIn = 10.minutes
+        drafts.saveDraft(
+            WorkoutDraft(routineId = 2, startedAt = start - GetWorkoutDraftUseCase.MAX_AGE + expiresIn, exercises = emptyList()),
+        )
+
+        observe(virtualClock)().test {
+            assertEquals(WidgetTarget.Resume(2, "Pull"), awaitItem().target)
+
+            // Nothing in the database changes: the draft just gets too old.
+            assertEquals(WidgetTarget.Start(2, "Pull"), awaitItem().target)
+            assertTrue(testScheduler.currentTime >= expiresIn.inWholeMilliseconds)
         }
     }
 }

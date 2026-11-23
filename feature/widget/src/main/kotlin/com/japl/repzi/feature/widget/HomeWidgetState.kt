@@ -16,6 +16,11 @@ data class HomeWidgetState(
     val lastWorkout: LastWorkout?,
     val target: WidgetTarget,
     val weightUnit: WeightUnit,
+    /**
+     * The app language the state was computed in. Nothing reads it: it is here so that a language change makes the
+     * state differ from the last one, which is what gets the widget redrawn (its texts are chosen while drawing).
+     */
+    val language: String = "",
 )
 
 data class LastWorkout(

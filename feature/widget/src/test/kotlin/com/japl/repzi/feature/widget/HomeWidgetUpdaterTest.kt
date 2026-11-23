@@ -50,6 +50,7 @@ class HomeWidgetUpdaterTest {
             ObserveWorkoutDraftsUseCase(drafts),
             ObserveWeightUnitUseCase(settings),
             clock,
+            WidgetLanguage { "en" },
         ),
         refresher,
     )
