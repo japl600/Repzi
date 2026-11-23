@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -132,6 +133,8 @@ fun SettingsRoute(
         },
         versionLabel = versionLabel,
         languageAvailable = LANGUAGE_SETTINGS_AVAILABLE,
+        // LocalConfiguration follows the per-app language, so the row updates when the user comes back from changing it.
+        currentLanguage = languageLabel(LocalConfiguration.current.locales[0]),
         onOpenLanguage = {
             val uri = Uri.fromParts("package", context.packageName, null)
             context.startActivitySafely(Intent(Settings.ACTION_APP_LOCALE_SETTINGS, uri))
@@ -161,6 +164,7 @@ internal fun SettingsScreen(
     onOpenExactAlarmSettings: () -> Unit,
     versionLabel: String,
     languageAvailable: Boolean,
+    currentLanguage: String,
     onOpenLanguage: () -> Unit,
     onOpenSourceCode: () -> Unit,
     onOpenExerciseData: () -> Unit,
@@ -174,7 +178,7 @@ internal fun SettingsScreen(
         Column(modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
             SectionHeader(stringResource(R.string.settings_section_general))
             if (languageAvailable) {
-                NavigationRow(stringResource(R.string.settings_language), onClick = onOpenLanguage)
+                NavigationRow(stringResource(R.string.settings_language), onClick = onOpenLanguage, detail = currentLanguage)
             }
             SwitchRow(
                 title = stringResource(R.string.settings_rest_vibration),
@@ -225,9 +229,10 @@ private fun SectionHeader(text: String) {
 }
 
 @Composable
-private fun NavigationRow(title: String, onClick: () -> Unit) {
+private fun NavigationRow(title: String, onClick: () -> Unit, detail: String? = null) {
     ListItem(
         headlineContent = { Text(title) },
+        supportingContent = detail?.let { { Text(it) } },
         trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
         modifier = Modifier.clickable(onClick = onClick),
     )

@@ -43,6 +43,7 @@ class SettingsScreenTest {
 
     private fun setScreen(
         languageAvailable: Boolean = true,
+        currentLanguage: String = "English",
         restVibration: Boolean = true,
         restNotification: Boolean = false,
         inactivityReminder: Boolean = false,
@@ -70,6 +71,7 @@ class SettingsScreenTest {
                     onOpenExactAlarmSettings = { exactAlarmSettingsOpened++ },
                     versionLabel = "0.1.0 (1)",
                     languageAvailable = languageAvailable,
+                    currentLanguage = currentLanguage,
                     onOpenLanguage = { languageOpened++ },
                     onOpenSourceCode = { sourceCodeOpened++ },
                     onOpenLicenses = { licensesOpened++ },
@@ -87,6 +89,13 @@ class SettingsScreenTest {
 
         // The screen scrolls and the version is at the bottom: on a small screen it is below the fold until scrolled to.
         rule.onNodeWithText("0.1.0 (1)").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun theLanguageRowShowsTheCurrentLanguage() {
+        setScreen(currentLanguage = "Español")
+
+        rule.onNodeWithText("Español").performScrollTo().assertIsDisplayed()
     }
 
     @Test
