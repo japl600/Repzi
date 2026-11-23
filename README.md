@@ -18,7 +18,7 @@ It is also a portfolio project: a multi-module Clean Architecture app built with
   <img src="docs/screenshots/progress.png" width="24%" alt="Progress chart with metric selector">
   <img src="docs/screenshots/exercise-detail.png" width="24%" alt="Exercise detail with numbered steps, author and license">
   <img src="docs/screenshots/settings.png" width="24%" alt="Settings: language, vibration, weight unit and notifications">
-  <img src="docs/screenshots/widget.png" width="24%" alt="Home-screen widget: last workout and a button to start the next routine">
+  <img src="docs/screenshots/widget.png" width="24%" alt="Home-screen widget: a line about the last workout and a Start button">
 </p>
 
 The workout data shown is sample data.
