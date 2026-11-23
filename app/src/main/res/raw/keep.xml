@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- The licenses list is generated at build time and only read through R.raw, so the resource shrinker would drop it. -->
-<resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@raw/aboutlibraries" />
