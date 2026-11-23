@@ -11,6 +11,15 @@
         <receiver
             android:name=".RestReminderReceiver"
             android:exported="false" />
+
+        <!-- Sent by the system when exact alarms get allowed; the rest in progress then gets an exact alarm. -->
+        <receiver
+            android:name=".ExactAlarmPermissionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
