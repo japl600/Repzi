@@ -55,10 +55,11 @@ internal class TranslatedExerciseNames(
     }
 }
 
-/** Android flavour: seed names from string resources, language from the app's current locale. */
+/** Android flavour: seed names from string resources, language from [AppLanguage] (the one place that reads it). */
 internal class ResourceExerciseNames @Inject constructor(
     @param:ApplicationContext private val context: Context,
+    appLanguage: AppLanguage,
 ) : ExerciseNames by TranslatedExerciseNames(
     seedName = { key -> SEED_NAME_RESOURCES[key]?.let(context::getString) },
-    language = { context.resources.configuration.locales[0].language },
+    language = { appLanguage() },
 )
