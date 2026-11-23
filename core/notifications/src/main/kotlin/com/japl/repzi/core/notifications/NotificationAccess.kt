@@ -13,13 +13,21 @@ import android.os.Build
  */
 internal fun Context.canPostNotifications(channelId: String): Boolean {
     val manager = getSystemService(NotificationManager::class.java)
-    if (!manager.areNotificationsEnabled()) return false
     val permitted = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
         checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-    if (!permitted) return false
-    val channel = manager.getNotificationChannel(channelId) ?: return false
-    return channel.importance != NotificationManager.IMPORTANCE_NONE
+    return notificationWouldShow(
+        systemEnabled = manager.areNotificationsEnabled(),
+        permitted = permitted,
+        channelImportance = manager.getNotificationChannel(channelId)?.importance,
+    )
 }
+
+/**
+ * The decision on plain values, so every way of being blocked can be tested: [channelImportance] is null when the
+ * channel does not exist.
+ */
+internal fun notificationWouldShow(systemEnabled: Boolean, permitted: Boolean, channelImportance: Int?): Boolean =
+    systemEnabled && permitted && channelImportance != null && channelImportance != NotificationManager.IMPORTANCE_NONE
 
 /** Tapping a notification brings the app back; null if the package has no launcher activity. */
 internal fun Context.appLaunchIntent(): PendingIntent? {
