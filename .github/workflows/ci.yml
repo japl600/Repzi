@@ -16,7 +16,18 @@ jobs:
           java-version: 21
       - uses: gradle/actions/setup-gradle@v5
       - name: Build y tests unitarios
-        run: ./gradlew assembleDebug test
+        # The release unit tests are only enabled because the screenshot plugin requires them, so they are skipped here:
+        # they would run the same tests a second time. `test` is kept (not `testDebugUnitTest`) so the pure Kotlin
+        # modules, which have no debug variant, still run their tests.
+        run: ./gradlew assembleDebug test -x testReleaseUnitTest
+      - name: Screenshot tests
+        run: ./gradlew testDebugScreenshotTestDefaultTestSuite
+      - name: Upload screenshot reports
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: screenshot-test-reports
+          path: "**/build/reports/tests/testDebugScreenshotTestDefaultTestSuite/"
 
   instrumented:
     # Compose screen tests and Room DAO/migration tests need a device, so they run on an emulator.
